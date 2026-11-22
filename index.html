@@ -989,9 +989,9 @@
   ];
   // what the bottleneck shows: three separate lines that hint at a 3 (top arc, middle dash, bottom arc) but are not a 3
   const FEAT3 = [
-    [[9.5, 7], [14.5, 5.6], [19, 7.4]],
-    [[10.5, 14], [15.5, 14]],
-    [[7.5, 22], [12.5, 23.6], [17.5, 21.6]],
+    [[9, 6.5], [17.5, 5.8], [19.2, 9.2], [16.8, 11.6]],      // top: goes right and bends down on the right only
+    [[12.5, 13.9], [16.2, 13.9]],                            // middle tongue, pointing right
+    [[17.4, 16.4], [18.8, 19.6], [15.2, 22.9], [7.8, 22.4]], // bottom: bulges right, open on the left
   ];
   // what the decoder rebuilds from them: a similar, slightly soft 3
   const REC3 = (() => {
