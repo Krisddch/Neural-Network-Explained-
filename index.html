@@ -111,7 +111,7 @@
   @keyframes drip { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
 
   @media (max-width: 700px) {
-    .rail { right: 8px; gap: 9px; }
+    .rail { display: none; }
     .cap.top { top: 3vh; }
     .cap.bottom { bottom: 4vh; }
   }
@@ -150,6 +150,26 @@
   <div class="cap top" data-at="6.35" data-span="0.65">
     <h2>Світяться <em>різні</em> пікселі — а ідея та сама</h2>
     <p>Саме це мережа й має навчитися розпізнавати: форму, а не конкретні числа.</p>
+  </div>
+  <div class="cap top" data-at="8.45" data-span="0.55">
+    <h2>Мережа дає відповідь</h2>
+    <p>Усі 784 числа проходять крізь мережу — і на виході одна цифра: <em>3</em>.</p>
+  </div>
+  <div class="cap top" data-at="9.65" data-span="0.4">
+    <h2>Насправді це вибір з десяти</h2>
+    <p>Для кожної цифри від 0 до 9 мережа оцінює, наскільки зображення на неї схоже.</p>
+  </div>
+  <div class="cap top" data-at="10.35" data-span="0.3">
+    <h2>Але як саме вона обирає?</h2>
+    <p>Щоб це зрозуміти, спершу подивимось, чому задача взагалі складна.</p>
+  </div>
+  <div class="cap top" data-at="12.15" data-span="0.55">
+    <h2>Ця трійка — <em>не</em> сімка</h2>
+    <p>Для нас різниця очевидна. Для комп'ютера це просто два набори по 784 числа.</p>
+  </div>
+  <div class="cap top" data-at="13.55" data-span="0.6">
+    <h2>А ці дві — одна й та сама цифра</h2>
+    <p>Хоча пікселі в них майже не збігаються. Саме цю «схожість форми» мережа й має навчитися бачити.</p>
   </div>
 </div>
 
@@ -191,20 +211,26 @@
   // Three other handwritten 3s (sampled from the reference frames)
   const VARIANTS = ([[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.2,0.53,0.93,0.72,0.53,0.53,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.47,1,1,1,1,1,1,0.31,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.07,0.97,1,1,1,1,1,1.0,0.33,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.47,1,1,0.95,1,1,1,0.62,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.88,1,0.9,1,1,1,0.15,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.4,0.88,1,1,1,1,0.18,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.11,0.9,1,1,1,0.74,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.41,0.61,1,1,1,1,0.51,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.19,0.9,1,1,1,1,1,1,0.15,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.37,1,1,1,1,1,1,1,0.65,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.5,1,1,1,1,1,1,0.75,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.35,0.41,0.41,0.42,1,1,0.75,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.58,1,0.92,0.13,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0.91,0.12,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.62,1,1,0.53,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.76,0.42,0,0,0,0,0,0.11,1,1,1,0.14,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.72,1,0.91,0.3,0.16,0,0.24,0.42,0.88,1,1,0.62,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.26,0.84,1,1,0.94,0.79,1,1,1,1,0.91,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.62,0.48,1,1,1,1,1,1,0.99,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.53,0.53,0.72,1,1,1,0.23,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0.45,0.42,0.63,0.68,1,0.79,0.69,0.68,0.68,0.68,0.59,0.25,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0.63,1,1,1,1,1,1,1,1,1,1,1,1,0.89,0.55,0.14,0,0,0,0,0,0,0,0,0],[0,0,0,0.93,1,1,1,0.99,0.82,0.82,0.82,0.82,0.67,0.81,0.88,1,1,1,0.35,0,0,0,0,0,0,0,0,0],[0,0,0,0.15,0.34,0.16,0.15,0.11,0,0,0,0,0,0,0,0.95,1,1,0.68,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.42,1,1,1,0.25,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.68,1,1,1,0.22,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.31,0.69,1,1,1,0.47,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.25,1,1,1,1,1,0.35,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.62,1,1,1,1,1,1,0.86,0.56,0.22,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.27,0.78,0.98,1,1,1,1,1,1,1,0.63,0.09,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.14,0.23,0.35,0.68,1,1,1,1,1,0.82,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.42,0.85,1,1,1,1,0.53,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.83,1,1,1,0.67,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.63,1,1,1,0.53,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.11,0.57,0.39,0,0,0,0,0,0,0,0.81,1,1,1,0.29,0,0,0,0,0],[0,0,0,0,0,0,0,0.1,0.89,1,0,0,0,0,0,0,0.1,0.61,1,1,1,0.89,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.73,1,1,0.22,0,0,0,0,0.56,1,1,1,1,1,0.29,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.46,1,1,1,0.87,0.82,0.82,0.87,1,1,1,1,1,0.32,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.15,0.73,1,1,1,1,1,1,1,1,1,0.61,0.25,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.41,0.68,0.53,0.83,0.83,0.68,0.68,0.41,0.23,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.37,0.88,1,1,1,1,0.44,0.38,0.38,0.2,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.18,0.69,0.69,0.69,0.73,1,1,1,1,1,1,1,1,1,0.89,0.18,0,0,0,0,0,0],[0,0,0,0,0,0,0.95,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.65,0,0,0,0,0],[0,0,0,0,0,0,0.62,1,1,1,1,0.51,0.92,1,1,1,1,1,1,1,1,1,0.89,0.19,0,0,0,0],[0,0,0,0,0,0,0.18,0.14,0.15,0.15,0.13,0,0.15,0.65,0.15,0.87,0.99,1,1,1,1,1,0.99,0.3,0,0,0,0],[0,0,0,0,0,0,0.41,0,0,0,0,0,0,0,0,0.16,0.85,1,1,1,1,1,0.38,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.14,0.87,0.87,0.91,1,1,1,1,1,0.42,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.73,1,1,1,1,1,1,1,1,0.38,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.1,1,1,1,1,1,1,1,1,0.45,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.07,0.86,1,1,1,1,1,1,1,0.97,0.23,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.16,0.4,0.4,0.4,1,1,1,1,1,0.62,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.68,1,1,1,1,0.27,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.29,1.0,1,1,1,0.27,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.15,0.98,1,1,0.67,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.17,0.86,1,1,1,0.63,0,0,0,0,0,0,0],[0,0,0,0,0.3,0.9,0.9,0.9,0.28,0.16,0.16,0.09,0.11,0.16,0.66,0.94,1,1,1,1,0.62,0,0,0,0,0,0,0],[0,0,0,0,0.37,1,1,1,1,1,1,0.85,0.91,1,1,1,1,1,1,0.7,0.36,0,0,0,0,0,0,0],[0,0,0,0,0.37,1,1,1,1,1,1,1,1,1,1,1,1,1.0,0.98,0.19,0,0,0,0,0,0,0,0],[0,0,0,0,0.22,0.69,1,1,1,1,1,1,1,1,1,0.7,0.69,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.53,1,1,1,1,1,0.57,0.36,0.36,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]]).map(g => Float32Array.from(g.flat()));
 
+  // A handwritten 7 (for the "3 ≠ 7" comparison)
+  const SEVEN = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.52,0.56,0.71,1,1,0.9,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.31,0.52,0.75,1,1,1,1,1,1,0.9,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.16,0.82,0.93,0.96,1,1,1,0.87,1,1,1,1,1,0.92,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.3,0.94,1,1,1,1,1,0.17,0.07,0.15,0.32,0.96,1,1,0.78,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.79,1,1,1,1,0.5,0.25,0,0,0,0.68,1,1,0.92,0.07,0,0,0,0,0,0],[0,0,0,0,0,0,0.32,0.99,1,1,0.93,0.29,0,0,0,0,0,0.78,1,1,0.61,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.78,1,1,0.83,0.32,0,0,0,0,0.07,0.43,1.0,1,0.82,0.31,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.38,0.85,0.78,0.11,0,0,0,0,0,0.58,1,1,0.88,0.13,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.38,1,1,1,0.46,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.06,1,1,1,0.47,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.63,1,1,1,0.17,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.77,1,1,0.48,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.45,1,1,0.7,0.06,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.71,1,1,0.52,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.19,1,1,0.88,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.19,0.7,1,0.92,0.16,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.73,1,1,0.49,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.22,0.79,1,0.66,0.16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.6,1,0.92,0.16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.34,1,0.37,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
+
   // ---------- Helpers ----------
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
   const lerp = (a, b, t) => a + (b - a) * t;
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const backOut = t => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
   const seg = (t, a, b) => ease(clamp((t - a) / (b - a)));
   const raw = (t, a, b) => clamp((t - a) / (b - a));
+  // visible between [a0→a1 fade in] and [b0→b1 fade out]
+  const win = (t, a0, a1, b0, b1) => seg(t, a0, a1) * (1 - seg(t, b0, b1));
   // staggered local progress: d in [0,1] is the pixel's delay share
   const stag = (p, d, spread = .35) => ease(clamp((p - d * spread) / (1 - spread)));
 
   // ---------- Timeline (in "scene units") ----------
-  const T_END = 7;
+  const T_END = 14;
   const UNIT = 1.15;              // viewport heights of scroll per unit
-  const STOPS = [0.25, 1.75, 2.95, 3.6, 5.0, 6.35];  // rail anchors
+  const STOPS = [0.25, 1.75, 2.95, 3.6, 5.0, 6.35, 8.45, 9.65, 10.35, 12.15, 13.55];
 
   const track = document.getElementById('track');
   const resizeTrack = () => track.style.height = (T_END * UNIT + 1) * innerHeight + 'px';
@@ -216,9 +242,8 @@
   const bctx = bgc.getContext('2d');
   let W = 0, H = 0, DPR = 1, mobile = false;
 
-  // background parallax dust (very subtle; background stays black)
   const DUST = Array.from({ length: 140 }, () => ({
-    x: Math.random(), y: Math.random() * 3, z: .2 + Math.random() * .8, s: Math.random()
+    x: Math.random(), y: Math.random() * 3, z: .2 + Math.random() * .8
   }));
 
   function resize() {
@@ -230,8 +255,7 @@
     resizeTrack();
   }
 
-  // ---------- Layouts (where the main grid lives at each keyframe) ----------
-  // a layout = { cx, cy, cell } describing the full 28×28 grid
+  // ---------- Layouts: { cx, cy, cell } of a full 28×28 grid ----------
   const L = {
     hero: () => ({ cx: W / 2, cy: H * (mobile ? .44 : .47), cell: Math.min(W * 1.25, H * 1.05) / N }),
     box:  () => mobile
@@ -243,10 +267,19 @@
     side: () => mobile
       ? ({ cx: W * .3, cy: H * .58, cell: Math.min(W * .5, H * .5) / N })
       : ({ cx: W * .33, cy: H * .57, cell: Math.min(W * .4, H * .72) / N }),
+    // comparison pair (scenes "3 ≠ 7" and "3 = 3")
+    left:  () => ({ cx: W * (mobile ? .22 : .28), cy: H * (mobile ? .55 : .58), cell: pairSize() / N }),
+    right: () => ({ cx: W * (mobile ? .78 : .72), cy: H * (mobile ? .55 : .58), cell: pairSize() / N }),
   };
+  const pairSize = () => mobile ? W * .34 : Math.min(W * .28, H * .5);
   const lerpL = (a, b, p) => ({ cx: lerp(a.cx, b.cx, p), cy: lerp(a.cy, b.cy, p), cell: lerp(a.cell, b.cell, p) });
 
-  // Variant boxes (scene 4/5)
+  // Main digit keyframes: [time, layout]. Equal neighbours = hold, different = transition.
+  const KF = [
+    [0, 'hero'], [.8, 'hero'], [1.6, 'box'], [2.05, 'box'], [2.75, 'grid'], [3.85, 'grid'],
+    [4.5, 'side'], [7.1, 'side'], [7.9, 'grid'], [10.7, 'grid'], [11.5, 'left'], [T_END, 'left'],
+  ];
+
   function variantBox(i) {
     const s = mobile ? Math.min(H * .22, W * .36) : Math.min(H * .25, W * .24);
     const gap = s * .08;
@@ -255,14 +288,12 @@
     return { cx, cy, cell: s / N };
   }
 
-  // ---------- Per-pixel random seeds ----------
   const seeds = Array.from({ length: NN }, () => ({
     a: Math.random() * Math.PI * 2, r: .4 + Math.random() * .9, d: Math.random()
   }));
 
   // ---------- Drawing primitives ----------
   function pixelColor(v, yellow, alpha) {
-    // gray v → yellow*v
     const g = v * 255;
     const r = lerp(g, 200 * v + 20 * (v > .02), yellow);
     const gg = lerp(g, 190 * v + 18 * (v > .02), yellow);
@@ -298,7 +329,86 @@
     ctx.restore();
   }
 
-  // ---------- Intro (time-based assemble) ----------
+  // Draw one 28×28 digit as squares at layout l
+  function drawDigit(vals, l, alpha = 1, gap = .04, jitter = null) {
+    for (let i = 0; i < NN; i++) {
+      const v = vals[i];
+      if (v <= .02) continue;
+      const r = (i / N) | 0, c = i % N;
+      let x = l.cx + (c - N / 2 + .5) * l.cell, y = l.cy + (r - N / 2 + .5) * l.cell;
+      let a = alpha;
+      if (jitter) { const j = jitter(i, r, c); if (!j) continue; x += j.dx; y += j.dy; a *= j.a; }
+      if (a <= 0) continue;
+      const s = l.cell * (1 - gap);
+      const g = (v * 255) | 0;
+      ctx.fillStyle = `rgba(${g},${g},${g},${a})`;
+      ctx.fillRect(x - s / 2, y - s / 2, s, s);
+    }
+  }
+
+  // ---------- Output-column geometry (shared so nothing jumps between slides) ----------
+  function outputGeom(dy) {
+    const g = L.grid(), gh = g.cell * N;
+    if (!mobile) {
+      const x = W * .86, top = g.cy - gh * .46 + dy, step = gh * .92 / 9;
+      const fs = Math.min(step * .78, 64);
+      return {
+        mobile: false, fs, step,
+        slot: k => ({ x, y: top + k * step }),
+        arrow: { x0: g.cx + gh / 2 + g.cell * 1.2, x1: x - fs * .9, y: g.cy + gh * .07 + dy },
+        answer: { x, y: g.cy + gh * .07 + dy },     // where the single answer "3" sits
+      };
+    }
+    const y = g.cy + gh / 2 + Math.min(54, (H - (g.cy + gh / 2)) / 2) + dy;
+    const step = (W - 40) / 10, fs = Math.min(step * .85, 36);
+    return {
+      mobile: true, fs, step,
+      slot: k => ({ x: 20 + step * (k + .5), y }),
+      arrow: null,
+      answer: { x: W / 2, y },
+    };
+  }
+
+  function drawDigitGlyph(ch, x, y, fs, alpha) {
+    if (alpha <= 0) return;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = digitFont(fs);
+    ctx.fillText(ch, x, y);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawHlBox(x, y, w, h, alpha) {
+    if (alpha <= 0) return;
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = '#e6dc4e'; ctx.lineWidth = mobile ? 2 : 3;
+    ctx.strokeRect(x - w / 2, y - h / 2, w, h);
+    ctx.globalAlpha = 1;
+  }
+
+  // column of 0–9; skip = digit drawn elsewhere
+  function drawColumn(G, alpha, hl, qA, now, skip = -1, stagger = 0) {
+    if (alpha <= 0) return;
+    for (let k = 0; k <= 9; k++) {
+      const ka = clamp(alpha * 1.8 - k * .08 * (1 - stagger) - Math.abs(k - 3) * .1 * stagger);
+      const s = G.slot(k);
+      if (k !== skip) {
+        const off = (1 - ka) * (G.mobile ? 0 : 40);
+        drawDigitGlyph(String(k), s.x + off, s.y + (G.mobile ? (1 - ka) * 20 : 0), G.fs, ka);
+      }
+      if (k === 3) {
+        if (hl > 0) {
+          const grow = 1.4 - .4 * hl;
+          drawHlBox(s.x, s.y, G.fs * .95 * (G.mobile ? 1 : grow), G.fs * 1.15 * (G.mobile ? 1 : grow), alpha * hl);
+        }
+        if (qA > 0 && !G.mobile) {
+          drawDigitGlyph('?', s.x + G.fs * 1.15 + (1 - qA) * 12, s.y - G.fs * .05 - Math.sin(now / 400) * 3 * qA, G.fs * .75, alpha * qA);
+        }
+      }
+    }
+  }
+
+  // ---------- Intro ----------
   const t0 = performance.now();
   const INTRO_MS = 2200;
 
@@ -313,7 +423,6 @@
   const heroShade = document.getElementById('heroShade');
   const hint = document.getElementById('hint');
 
-  // Rail
   const rail = document.getElementById('rail');
   const railBtns = STOPS.map((s, i) => {
     const b = document.createElement('button');
@@ -324,9 +433,9 @@
 
   function updateDOM(t) {
     for (const c of caps) {
-      const d = (t - c.at) / c.span;          // -1..1 inside its window
-      const o = clamp(1.25 - Math.abs(d) * 1.25) ;
-      const y = -d * 70;                       // parallax drift: captions move faster than the scene
+      const d = (t - c.at) / c.span;
+      const o = clamp(1.25 - Math.abs(d) * 1.25);
+      const y = -d * 70;
       c.el.style.opacity = easeOut(o).toFixed(3);
       c.el.style.transform = `translate(-50%, ${y.toFixed(1)}px)`;
       c.el.style.filter = o < 1 ? `blur(${((1 - o) * 6).toFixed(1)}px)` : 'none';
@@ -337,59 +446,76 @@
     railBtns.forEach((b, i) => b.classList.toggle('on', i === k));
   }
 
-  // ---------- Background ----------
   function drawBg(t) {
     bctx.clearRect(0, 0, W, H);
     for (const d of DUST) {
-      const y = ((d.y - t * .35 * d.z) % 3 + 3) % 3;  // slower layers = depth
+      const y = ((d.y - t * .35 * d.z) % 3 + 3) % 3;
       if (y > 1.05) continue;
-      const a = .05 + .12 * d.z;
-      bctx.fillStyle = `rgba(150,170,190,${a})`;
+      bctx.fillStyle = `rgba(150,170,190,${.05 + .12 * d.z})`;
       const s = .6 + d.z * 1.3;
       bctx.fillRect(d.x * W, y * H, s, s);
     }
   }
 
-  // ---------- Main render ----------
   const digitFont = c => `${c}px "STIX Two Text", "Times New Roman", serif`;
 
+  // ---------- Main render ----------
   function render(now) {
     const t = tNow;
     const intro = clamp((now - t0) / INTRO_MS);
     ctx.clearRect(0, 0, W, H);
     drawBg(t);
 
-    // --- main grid layout by segment ---
-    let A, B, p, spreadDir = 'col';
-    if (t < 0.8)       { A = L.hero(); B = A; p = 0; }
-    else if (t < 1.6)  { A = L.hero(); B = L.box(); p = raw(t, .8, 1.6); }
-    else if (t < 2.05) { A = L.box(); B = A; p = 0; }
-    else if (t < 2.75) { A = L.box(); B = L.grid(); p = raw(t, 2.05, 2.75); spreadDir = 'row'; }
-    else if (t < 3.85) { A = L.grid(); B = A; p = 0; }
-    else if (t < 4.5)  { A = L.grid(); B = L.side(); p = raw(t, 3.85, 4.5); }
-    else               { A = L.side(); B = A; p = 0; }
+    // --- main grid layout from keyframes ---
+    let A, B, p = 0, spreadDir = 'col';
+    for (let k = 0; k < KF.length - 1; k++) {
+      const [ta, la] = KF[k], [tb, lb] = KF[k + 1];
+      if (t >= ta && t <= tb) {
+        A = L[la](); B = L[lb]();
+        if (la !== lb) { p = raw(t, ta, tb); if (la === 'box' && lb === 'grid') spreadDir = 'row'; }
+        else B = A;
+        break;
+      }
+    }
+    if (!A) { A = B = L.left(); }
 
-    // hero parallax: gentle zoom + drift before leaving
     if (t < 1.6) {
       const z = 1 + (1 - intro) * .08 - t * .05;
       A = { ...A, cell: A.cell * z, cy: A.cy - t * 18 };
     }
-    // scene-level parallax drift during holds (scene moves slower than captions)
+
+    // scene-level parallax drift during holds
     const drift = (u, a, b) => (raw(u, a, b) - .5) * -26;
     let dy = 0;
     if (t >= 1.6 && t < 2.05) dy = drift(t, 1.2, 2.4);
-    if (t >= 2.75 && t < 3.85) dy = drift(t, 2.5, 4.1) * .6;
-    if (t >= 4.5) dy = drift(t, 4.3, 7);
+    else if (t >= 2.75 && t < 3.85) dy = drift(t, 2.5, 4.1) * .6;
+    else if (t >= 4.5 && t < 7.1) dy = drift(t, 4.3, 7.3);
+    else if (t >= 7.9 && t < 10.7) dy = drift(t, 7.7, 10.9) * .6;
+    else if (t >= 11.5) dy = drift(t, 11.3, 14.2);
+    // keep drift continuous at segment boundaries by easing it in/out
+    const holdEdge = (a, b) => Math.min(raw(t, a, a + .25), 1 - raw(t, b - .25, b));
+    if (t >= 7.9 && t < 10.7) dy *= holdEdge(7.9, 10.7);
+    if (t >= 2.75 && t < 3.85) dy *= holdEdge(2.75, 3.85);
+    if (t >= 4.5 && t < 7.1) dy *= holdEdge(4.5, 7.1);
+    if (t >= 1.6 && t < 2.05) dy *= holdEdge(1.6, 2.05);
+    if (t >= 11.5) dy *= raw(t, 11.5, 11.75);
 
-    const numbersA = seg(t, 2.35, 3.0) * (1 - seg(t, 3.85, 4.1));   // numeric labels
-    const zerosA   = numbersA;
-    const yellow   = seg(t, 5.55, 6.35);
+    const numbersA = win(t, 2.35, 3.0, 3.85, 4.1) + win(t, 7.75, 8.25, 10.7, 10.95);
+    const yellow   = win(t, 5.55, 6.35, 7.0, 7.5);
     const gapF     = lerp(.04, .3, yellow);
-    const boxA     = seg(t, 1.0, 1.5) * (1 - seg(t, 2.05, 2.4));
-    const gridFrameA = seg(t, 2.5, 2.9) * (1 - seg(t, 3.85, 4.15));
+    const boxA     = win(t, 1.0, 1.5, 2.05, 2.4);
+    const gridFrameA = win(t, 2.5, 2.9, 3.85, 4.15) + win(t, 7.5, 7.9, 10.7, 11.0);
+    const pairFrameA = seg(t, 11.15, 11.55);
+    const morph0   = raw(t, 10.75, 11.6);   // main 3 → narrow handwritten 3 (variant 0)
+    const pulse    = yellow > 0 && yellow < 1 ? Math.sin(yellow * Math.PI) : 0;
 
-    // ripple "pulse" when yellow activates
-    const pulse = yellow > 0 && yellow < 1 ? Math.sin(yellow * Math.PI) : 0;
+    // current values of the main digit
+    const vals = new Float32Array(NN);
+    for (let i = 0; i < NN; i++) {
+      const c = i % N;
+      const m = morph0 > 0 ? stag(morph0, (c / N) * .5 + seeds[i].d * .5, .5) : 0;
+      vals[i] = lerp(MAIN[i], VARIANTS[0][i], m);
+    }
 
     const pos = new Array(NN);
     for (let i = 0; i < NN; i++) {
@@ -399,54 +525,53 @@
       const l = lerpL(A, B, lp);
       let x = l.cx + (c - N / 2 + .5) * l.cell;
       let y = l.cy + (r - N / 2 + .5) * l.cell + dy;
-      // swirl mid-transition for fluidity
       const mid = Math.sin(lp * Math.PI);
       x += Math.cos(seeds[i].a) * mid * l.cell * 1.6 * seeds[i].r;
       y += Math.sin(seeds[i].a) * mid * l.cell * 1.6 * seeds[i].r;
-      // intro assemble
+      let ia = 1;
       if (intro < 1) {
         const ip = easeOut(clamp((intro - seeds[i].d * .45) / .55));
         const R = Math.max(W, H) * .6 * seeds[i].r;
         x += Math.cos(seeds[i].a) * R * (1 - ip);
         y += Math.sin(seeds[i].a) * R * (1 - ip);
-        pos[i] = { x, y, cell: l.cell, ia: ip };
-      } else pos[i] = { x, y, cell: l.cell, ia: 1 };
+        ia = ip;
+      }
+      pos[i] = { x, y, cell: l.cell, ia };
     }
 
     // frames
     const lb = lerpL(A, B, p ? ease(p) : 0);
-    drawFrame({ ...lb, cy: lb.cy + dy }, boxA * .85, '200,200,200', lb.cell * .6);
-    drawFrame({ ...lb, cy: lb.cy + dy }, gridFrameA, '111,183,214', lb.cell * .5);
+    const lbd = { ...lb, cy: lb.cy + dy };
+    drawFrame(lbd, boxA * .85, '200,200,200', lb.cell * .6);
+    drawFrame(lbd, gridFrameA, '111,183,214', lb.cell * .5);
+    drawFrame(lbd, pairFrameA * .85, '200,200,200', 0);
 
     // pixels
-    const showNums = numbersA > 0.001 && pos[0].cell >= 9;
     for (let i = 0; i < NN; i++) {
-      const v = MAIN[i];
+      const v = vals[i];
+      if (v <= 0.001) continue;
       const P = pos[i];
       const r = (i / N) | 0, c = i % N;
-      if (v > 0.001) {
-        const s = P.cell * (1 - gapF) * (1 + pulse * .25 * Math.sin((r + c) * .5 - yellow * 9));
-        ctx.fillStyle = pixelColor(v, yellow, P.ia);
-        ctx.fillRect(P.x - s / 2, P.y - s / 2, s, s);
-      }
+      const s = P.cell * (1 - gapF) * (1 + pulse * .25 * Math.sin((r + c) * .5 - yellow * 9));
+      ctx.fillStyle = pixelColor(v, yellow, P.ia);
+      ctx.fillRect(P.x - s / 2, P.y - s / 2, s, s);
     }
-    if (showNums) {
+    // numeric labels
+    if (numbersA > 0.001 && pos[0].cell >= 9) {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const fs = Math.max(6, pos[0].cell * .4);
-      ctx.font = `600 ${fs}px "STIX Two Text", serif`;
+      ctx.font = `600 ${Math.max(6, pos[0].cell * .4)}px "STIX Two Text", serif`;
       for (let i = 0; i < NN; i++) {
         const r = (i / N) | 0, c = i % N;
-        const w = clamp((numbersA * 1.6) - (r + c) / (2 * N) * .6);   // diagonal wave
+        const w = clamp((numbersA * 1.6) - (r + c) / (2 * N) * .6);
         if (w <= 0) continue;
-        const v = MAIN[i], P = pos[i];
-        if (v <= 0.001 && zerosA <= 0) continue;
+        const v = vals[i], P = pos[i];
         ctx.fillStyle = v > .55 ? `rgba(0,0,0,${w})` : `rgba(235,235,235,${w * (v > 0 ? 1 : .85)})`;
-        ctx.fillText(v.toFixed(1), P.x, P.y + w * 0 + (1 - w) * 6);
+        ctx.fillText(v.toFixed(1), P.x, P.y + (1 - w) * 6);
       }
     }
 
     // --- Scene 2: arrow + serif 3 ---
-    const s2 = seg(t, 1.2, 1.65) * (1 - seg(t, 2.05, 2.35));
+    const s2 = win(t, 1.2, 1.65, 2.05, 2.35);
     if (s2 > 0) {
       const box = L.box();
       const half = box.cell * N / 2;
@@ -455,83 +580,37 @@
         ctx.save(); ctx.translate(W / 2, (y0 + y1) / 2); ctx.rotate(Math.PI / 2);
         drawArrow(-(y1 - y0) / 2, 0, (y1 - y0) / 2, seg(t, 1.2, 1.55), s2);
         ctx.restore();
-        ctx.globalAlpha = seg(t, 1.45, 1.7) * s2;
-        ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.font = digitFont(H * .14);
-        ctx.fillText('3', W / 2, y1 + H * .09);
-        ctx.globalAlpha = 1;
+        drawDigitGlyph('3', W / 2, y1 + H * .09, H * .14, seg(t, 1.45, 1.7) * s2);
       } else {
         const x0 = box.cx + half + box.cell * 2.5;
-        const x1 = W * .64;
-        drawArrow(x0, box.cy + dy, x1, seg(t, 1.2, 1.55), s2);
+        drawArrow(x0, box.cy + dy, W * .64, seg(t, 1.2, 1.55), s2);
         const a = seg(t, 1.45, 1.7) * s2;
-        ctx.globalAlpha = a;
-        ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         const sz = half * 1.25;
-        ctx.font = digitFont(sz);
-        ctx.fillText('3', W * .75 + (1 - a) * 30, box.cy + dy + sz * .04);
-        ctx.globalAlpha = 1;
+        drawDigitGlyph('3', W * .75 + (1 - a) * 30, box.cy + dy + sz * .04, sz, a);
       }
     }
 
-    // --- Scene 3: 0–9 output column, arrow, highlight "3 ?" ---
-    const colA = seg(t, 2.7, 3.15) * (1 - seg(t, 3.85, 4.15));
+    // --- Scene 3: 0–9 output column, highlight "3 ?" ---
+    const colA = win(t, 2.7, 3.15, 3.85, 4.15);
     if (colA > 0) {
-      const g = L.grid();
-      const gh = g.cell * N;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const G = outputGeom(dy);
+      if (G.arrow) drawArrow(G.arrow.x0, G.arrow.y, G.arrow.x1, seg(t, 2.75, 3.1), colA);
       const hl = seg(t, 3.3, 3.55);
-      if (!mobile) {
-        const x = W * .86, top = g.cy - gh * .46 + dy, step = gh * .92 / 9;
-        const fs = Math.min(step * .78, 64);
-        drawArrow(g.cx + gh / 2 + g.cell * 1.2, g.cy + gh * .07 + dy, x - fs * .9, seg(t, 2.75, 3.1), colA);
-        for (let k = 0; k <= 9; k++) {
-          const ka = clamp(colA * 1.8 - k * .08);
-          const y = top + k * step;
-          ctx.globalAlpha = ka;
-          ctx.fillStyle = '#fff';
-          ctx.font = digitFont(fs);
-          ctx.fillText(String(k), x + (1 - ka) * 40, y);
-          if (k === 3 && hl > 0) {
-            ctx.globalAlpha = colA * hl;
-            ctx.strokeStyle = '#e6dc4e'; ctx.lineWidth = 3;
-            const bw = fs * .95 * (1.4 - .4 * hl), bh = fs * 1.15 * (1.4 - .4 * hl);
-            ctx.strokeRect(x - bw / 2, y - bh / 2, bw, bh);
-            ctx.fillStyle = '#fff';
-            ctx.font = digitFont(fs * .75);
-            ctx.fillText('?', x + fs * 1.15 + (1 - hl) * 12, y - fs * .05 - Math.sin(now / 400) * 3 * hl);
-          }
-        }
-      } else {
-        // horizontal row under the grid
-        const y = g.cy + gh / 2 + Math.min(54, (H - (g.cy + gh / 2)) / 2) + dy;
-        const step = (W - 40) / 10, fs = Math.min(step * .85, 36);
-        for (let k = 0; k <= 9; k++) {
-          const ka = clamp(colA * 1.8 - k * .08);
-          const x = 20 + step * (k + .5);
-          ctx.globalAlpha = ka; ctx.fillStyle = '#fff'; ctx.font = digitFont(fs);
-          ctx.fillText(String(k), x, y + (1 - ka) * 20);
-          if (k === 3 && hl > 0) {
-            ctx.globalAlpha = colA * hl; ctx.strokeStyle = '#e6dc4e'; ctx.lineWidth = 2;
-            ctx.strokeRect(x - fs * .45, y - fs * .6, fs * .9, fs * 1.2);
-          }
-        }
-      }
-      ctx.globalAlpha = 1;
+      drawColumn(G, colA, hl, hl, now);
     }
 
-    // --- Scene 4: three variants stream out of the main digit ---
+    // --- Scene 4/5: three variants stream out of the main digit (and back) ---
     for (let k = 0; k < 3; k++) {
-      const vp = raw(t, 4.35 + k * .22, 5.2 + k * .22);
-      if (vp <= 0 || !VARIANTS[k]) continue;
+      const vf = raw(t, 4.35 + k * .22, 5.2 + k * .22);
+      const vb = raw(t, 7.0 + k * .12, 7.75 + k * .12);
+      if (vf <= 0 || vb >= 1) continue;
       const target = variantBox(k);
-      const tdy = dy * 1.6;  // closer layer → more parallax
-      const fa = seg(vp, .55, 1);
-      drawFrame({ ...target, cy: target.cy + tdy }, fa * .85, '200,200,200', 0);
+      const tdy = dy * 1.6;
+      drawFrame({ ...target, cy: target.cy + tdy }, seg(vf, .55, 1) * (1 - seg(vb, 0, .4)) * .85, '200,200,200', 0);
       const V = VARIANTS[k];
       for (let i = 0; i < NN; i++) {
         const r = (i / N) | 0, c = i % N;
-        const lp = stag(vp, (c / N) * .6 + seeds[i].d * .4, .5);
+        const lp = stag(vf, (c / N) * .6 + seeds[i].d * .4, .5) * (1 - stag(vb, (1 - c / N) * .6 + seeds[i].d * .4, .5));
         if (lp <= 0) continue;
         const from = pos[i];
         const tx = target.cx + (c - N / 2 + .5) * target.cell;
@@ -542,9 +621,94 @@
         const v = lerp(MAIN[i], V[i], clamp(lp * 1.3));
         if (v <= .02) continue;
         const cell = lerp(from.cell, target.cell, lp);
-        const s = cell * (1 - lerp(.04, 0, lp));
-        ctx.fillStyle = `rgba(${(v * 255) | 0},${(v * 255) | 0},${(v * 255) | 0},${Math.min(1, lp * 3)})`;
+        const s = cell * (1 - lerp(gapF, 0, lp));
+        const g = (v * 255) | 0;
+        ctx.fillStyle = `rgba(${g},${g},${g},${Math.min(1, lp * 3)})`;
         ctx.fillRect(x - s / 2, y - s / 2, s, s);
+      }
+    }
+
+    // --- Scene 6/7/8: network answers "3", then the full 0–9 choice ---
+    const outA = win(t, 7.85, 8.2, 10.65, 10.95);
+    if (outA > 0) {
+      const G = outputGeom(dy);
+      if (G.arrow) drawArrow(G.arrow.x0, G.arrow.y, G.arrow.x1, seg(t, 7.9, 8.3), outA);
+      const pop = clamp((t - 8.15) / .35);
+      const mv = seg(t, 8.95, 9.55);                       // answer box travels into slot 3
+      const s3 = G.slot(3);
+      const ax = lerp(G.answer.x, s3.x, mv), ay = lerp(G.answer.y, s3.y, mv);
+      const bigFs = G.mobile ? G.fs * 1.5 : Math.min(G.fs * 1.75, 104);
+      const fs = lerp(bigFs, G.fs, mv);
+      const sc = pop > 0 ? backOut(pop) : 0;
+      const hlFade = 1 - seg(t, 10.0, 10.4);               // slide 8: highlight disappears
+      // other digits of the column
+      drawColumn(G, seg(t, 9.15, 9.7) * outA, 0, seg(t, 9.45, 9.75) * hlFade, now, 3, 1);
+      // answer "3" + its yellow box
+      if (sc > 0) {
+        drawDigitGlyph('3', ax, ay, fs * sc, outA * clamp(pop * 2));
+        drawHlBox(ax, ay, fs * .95 * sc, fs * 1.15 * sc, outA * clamp(pop * 2) * hlFade);
+      }
+    }
+
+    // --- Scene 9/10: "3 ≠ 7", then the 7 becomes another 3: "3 = 3" ---
+    const rightIn = raw(t, 11.05, 11.95);
+    if (rightIn > 0) {
+      const R = L.right(), Rd = { ...R, cy: R.cy + dy * 1.4 };
+      drawFrame(Rd, seg(t, 11.1, 11.5) * .85, '200,200,200', 0);
+      const m = raw(t, 12.65, 13.45);                       // 7 → bold 3
+      const V = new Float32Array(NN);
+      for (let i = 0; i < NN; i++) {
+        const c = i % N, r = (i / N) | 0;
+        V[i] = lerp(SEVEN[i], VARIANTS[2][i], m > 0 ? stag(m, (r / N) * .55 + seeds[i].d * .45, .55) : 0);
+      }
+      drawDigit(V, Rd, 1, .04, (i, r, c) => {
+        const lp = stag(rightIn, (1 - c / N) * .5 + seeds[i].d * .5, .5);
+        if (lp <= 0) return null;
+        const mm = m > 0 ? Math.sin(stag(m, (r / N) * .55 + seeds[i].d * .45, .55) * Math.PI) : 0;
+        return {
+          dx: (1 - lp) * (W * .35 + seeds[i].r * 120) + Math.cos(seeds[i].a) * mm * Rd.cell * 1.4,
+          dy: (1 - lp) * Math.sin(seeds[i].a) * 160 + Math.sin(seeds[i].a) * mm * Rd.cell * 1.4,
+          a: lp,
+        };
+      });
+
+      // symbol between the boxes
+      const Lb = L.left();
+      const sx = (Lb.cx + R.cx) / 2, sy = R.cy + dy * 1.2;
+      const unit = pairSize();
+      const gapPx = (R.cx - Lb.cx) - unit;
+      const eqA = seg(t, 11.6, 11.95);
+      const eqScale = lerp(1, 1.12, seg(t, 12.9, 13.4));
+      const ew = Math.min(unit * .26, gapPx * .6) * eqScale, egap = Math.min(unit * .055, gapPx * .12) * eqScale;
+      if (eqA > 0) {
+        ctx.save();
+        ctx.globalAlpha = eqA;
+        ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, unit * .012); ctx.lineCap = 'butt';
+        const grow = easeOut(eqA);
+        for (const o of [-egap, egap]) {
+          ctx.beginPath(); ctx.moveTo(sx - ew / 2 * grow, sy + o); ctx.lineTo(sx + ew / 2 * grow, sy + o); ctx.stroke();
+        }
+        ctx.restore();
+      }
+      // red cross: drawn stroke-by-stroke, then retracts
+      const x1p = seg(t, 11.85, 12.1), x2p = seg(t, 12.0, 12.25);
+      const xOut = seg(t, 12.6, 12.95);
+      if (x1p > 0 && xOut < 1) {
+        const hw = Math.min(unit * .13, gapPx * .3), hh = hw * 1.45;
+        ctx.save();
+        ctx.strokeStyle = '#e0806a'; ctx.lineWidth = Math.max(4, hw * .3); ctx.lineCap = 'butt';
+        ctx.globalAlpha = 1 - xOut;
+        const k1 = x1p * (1 - xOut), k2 = x2p * (1 - xOut);
+        ctx.beginPath(); ctx.moveTo(sx - hw, sy - hh); ctx.lineTo(sx - hw + 2 * hw * k1, sy - hh + 2 * hh * k1); ctx.stroke();
+        if (k2 > 0) { ctx.beginPath(); ctx.moveTo(sx + hw, sy - hh); ctx.lineTo(sx + hw - 2 * hw * k2, sy - hh + 2 * hh * k2); ctx.stroke(); }
+        ctx.restore();
+        // the equals sign sits on top of the cross, like in the slide
+        if (eqA > 0) {
+          ctx.save(); ctx.globalAlpha = eqA;
+          ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, unit * .012);
+          for (const o of [-egap, egap]) { ctx.beginPath(); ctx.moveTo(sx - ew / 2, sy + o); ctx.lineTo(sx + ew / 2, sy + o); ctx.stroke(); }
+          ctx.restore();
+        }
       }
     }
 
@@ -554,7 +718,7 @@
   // ---------- Loop ----------
   function loop(now) {
     const diff = tTarget - tNow;
-    tNow += Math.abs(diff) < 1e-4 ? diff : diff * 0.09;   // smooth, fluid scrubbing
+    tNow += Math.abs(diff) < 1e-4 ? diff : diff * 0.09;
     render(now);
     requestAnimationFrame(loop);
   }
@@ -562,7 +726,6 @@
   addEventListener('resize', () => { resize(); readScroll(); });
   addEventListener('scroll', readScroll, { passive: true });
   resize(); readScroll(); tNow = tTarget;
-  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {});
   requestAnimationFrame(loop);
 })();
 </script>
