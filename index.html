@@ -247,7 +247,7 @@
   </div>
   <div class="cap top" data-key="ae" data-span="0.7">
     <h2>Автоасоціативні мережі</h2>
-    <p>Енкодери · <b>Bottleneck</b> · декодери</p>
+    <p>Енкодери – <b>Bottleneck</b> – декодери</p>
   </div>
   <div class="cap top" data-key="data" data-span="0.7">
     <h2>Багато даних → кілька ознак</h2>
@@ -282,7 +282,7 @@
 <div class="hint" id="hint">scroll<i></i></div>
 <div class="credits" id="credits">
   <a href="https://www.3blue1brown.com/lessons/neural-networks" target="_blank" rel="noopener">3Blue1Brown — But what is a neural network?</a>
-  <span>·</span>
+  <span>–</span>
   <a href="https://www.youtube.com/watch?v=hZ4a4NgM3u0" target="_blank" rel="noopener">Автоенкодери — відео на YouTube</a>
 </div>
 
@@ -1107,7 +1107,7 @@
     if (a <= 0) return;
     const fs = G.fs * (mobile ? .72 : .85);
     text(`MSE = ¹⁄₇₈₄ Σ (вхід − вихід)² ≈ ${mseVal().toFixed(3)}`, W / 2, G.ty, fs, a);
-    text('середньоквадратична похибка · ✓ збігається з покроковим підрахунком', W / 2, G.ty + fs * 1.5, fs * (mobile ? .5 : .48), a, 'center', '', '#e6dc4e');
+    text('середньоквадратична похибка – ✓ збігається з покроковим підрахунком', W / 2, G.ty + fs * 1.5, fs * (mobile ? .5 : .48), a, 'center', '', '#e6dc4e');
   }
   function mseScan(p) {
     const G = mseGeom();
