@@ -211,10 +211,6 @@
     <h2>Ось така мережа</h2>
     <p>784 входи → два приховані шари по 16 нейронів → 10 виходів.</p>
   </div>
-  <div class="cap top" data-key="links" data-span="0.6">
-    <h2>Що таке нейрони і як вони пов'язані?</h2>
-    <p>Кожен нейрон з'єднаний з усіма нейронами наступного шару.</p>
-  </div>
   <div class="cap top" data-key="pixel" data-span="0.6">
     <h2>Кожен піксель — це нейрон</h2>
     <p>Мережа починається з нейронів для кожного з 28 × 28 пікселів — разом <b>784</b>.</p>
@@ -365,7 +361,7 @@
     // bridge → the network recognising a 7
     custom(1.7, bridgeNetwork);
     // 10–11  the network; neurons and how they are linked
-    old([[0, 21.25], [.6, 21.25], [1.0, 22.6], [.45, 23.05], [.6, 23.05]], null, { net: .25, links: 2.2 });
+    old([[0, 21.25], [1.1, 21.25]], null, { net: .3 });
     // bridge → "a neuron holds a number"
     custom(1.4, bridgeNeuron, { neuron: 1.3 });
     // 12–13  zoom out: one neuron per pixel, 28 × 28 = 784
@@ -374,9 +370,9 @@
     old([[0, 28.1], [1.3, 29.35], [.5, 29.35], [.8, 30.65], [.5, 30.65], [.8, 31.95], [.6, 31.95]],
         () => ({ bA: 1, no784: 1 }), { act58: 1.6, act01: 2.6, act1: 3.8 });
     // 17  back into the square, 784
-    old([[0, 29.35], [1.4, 27.7], [.3, 27.7]], () => ({ liftV: 1 }));
+    old([[0, 29.35], [1.4, 27.7]], () => ({ liftV: 1, no784: 1 }));
     // 18  the square unrolls row by row
-    old([[0, 27.7], [1.0, 26.6], [1.4, 25.55], [.3, 25.55]], null, { rows: 1.6 });
+    old([[0, 27.7], [1.0, 26.6], [1.4, 25.55], [.3, 25.55]], p => ({ n784: seg(p, .32, .5) }), { rows: 1.6 });
     // bridge → one long row
     custom(1.2, bridgeLine);
     // 19–21  the long row, seen edge-on, then as "784" under a brace
@@ -386,14 +382,6 @@
     // 22–23  last layer, hidden layers
     old([[0, 38.6], [.4, 38.05], [1.3, 36.9], [.6, 36.5]], null, { outl: 2.1 });
     old([[0, 36.5], [1.0, 35.3], [.5, 35.2]], null, { hidden: 1.3 });
-    // 24  activations of one layer determine the next
-    old([[0, 35.2], [1.2, 35.2]], p => ({ fill: actFill(seg(p, 0, .6), seg(p, .1, .7), 0), ye: [0, 0, seg(p, .2, .8)] }), { prop0: .8 });
-    // 25  feed in an image…
-    old([[0, 35.2], [.4, 35.2], [2.6, 32.6], [.4, 32.6]], p => {
-      const f = 1 - seg(p, 0, .12);
-      return { noNumbers: 1, noLift: 1, fill: actFill(f, f, 0), ye: [0, 0, f] };
-    }, { feed: 3.2 });
-    old([[0, 32.6], [2.6, 35.2], [.3, 35.2]], () => ({ noNumbers: 1, noLift: 1 }));
     // 26–28  …the pattern travels layer by layer to the output
     old([[0, 35.2], [1.0, 35.2]], p => ({ fill: actFill(seg(p, .1, .8), 0, 0), ye: [seg(p, 0, .6), 0, 0] }), { p1: .7 });
     old([[0, 35.2], [1.0, 35.2]], p => ({ fill: actFill(1, .8 * seg(p, .2, .9), 0), ye: [1 - seg(p, 0, .5), seg(p, .1, .7), 0] }), { p2: .7 });
@@ -522,20 +510,17 @@
     const a = 1 - seg(p, .1, .6);
     if (a > 0) {
       offCtx.clearRect(0, 0, W, H);
-      ctx = offCtx; OV.hideIn0 = 1; drawNetwork(23.05, now); ctx = mainCtx;
+      ctx = offCtx; OV.hideA4 = 1; drawNetwork(21.25, now); ctx = mainCtx;
       ctx.globalAlpha = a; ctx.drawImage(off, 0, 0, W, H); ctx.globalAlpha = 1;
     }
-    const NB = netB(), n0 = NB.layers[0][0], T = neuronTarget();
+    // the input neuron holding 0.8 leaves the network and becomes "the" neuron
+    const NA = netA(), n0 = NA.layers[0][4], T = neuronTarget();
     const q = seg(p, .15, .7);
     const x = lerp(n0.x, T.x, q), y = lerp(n0.y, T.y, q) - Math.sin(q * Math.PI) * 40;
-    const r = lerp(NB.r * 1.08, T.d / 2, q);
-    const col = GREEN.map((v, k) => lerp(v, BLUE_FILL[k], q) | 0);
-    ctx.save();
-    if (q < 1) { ctx.shadowColor = `rgba(170,215,120,${.8 * (1 - q)})`; ctx.shadowBlur = 24 * (1 - q); }
+    const r = lerp(NA.r, T.d / 2, q);
+    const col = GREEN.map((v, k) => lerp(v * .8, BLUE_FILL[k], q) | 0);
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = `rgb(${col})`; ctx.fill();
-    ctx.restore();
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.lineWidth = Math.max(1.5, r * .07); ctx.strokeStyle = `rgba(150,205,225,${q})`; ctx.stroke();
+    ctx.lineWidth = Math.max(1.5, lerp(NA.r * .15, r * .07, q)); ctx.strokeStyle = 'rgba(150,205,225,1)'; ctx.stroke();
     drawDigitGlyph('0.8', x, y + r * .03, r * .62, seg(p, .55, .8));
     drawDefinition(1, lerp(18.2, 18.8, seg(p, .6, 1)));
   }
@@ -616,25 +601,25 @@
     hero: () => ({ cx: W / 2, cy: H * (mobile ? .44 : .47), cell: Math.min(W * 1.25, H * 1.05) / N }),
     box:  () => mobile
       ? ({ cx: W * .5, cy: H * .48, cell: Math.min(W * .5, H * .3) / N })
-      : ({ cx: W * .3, cy: H * .55, cell: Math.min(W * .3, H * .5) / N }),
+      : ({ cx: W * .3, cy: H * .6, cell: Math.min(W * .28, H * .42) / N }),
     grid: () => mobile
       ? ({ cx: W / 2, cy: H * .52, cell: (W - 24) / N })
-      : ({ cx: W * .42, cy: H * .57, cell: Math.min(W * .66, H * .74) / N }),
+      : ({ cx: W * .42, cy: H * .6, cell: Math.min(W * .58, H * .63) / N }),
     side: () => mobile
       ? ({ cx: W * .3, cy: H * .58, cell: Math.min(W * .5, H * .5) / N })
-      : ({ cx: W * .33, cy: H * .57, cell: Math.min(W * .4, H * .72) / N }),
+      : ({ cx: W * .33, cy: H * .6, cell: Math.min(W * .36, H * .6) / N }),
     // comparison pair (scenes "3 ≠ 7" and "3 = 3")
-    left:  () => ({ cx: W * (mobile ? .22 : .28), cy: H * (mobile ? .55 : .58), cell: pairSize() / N }),
-    right: () => ({ cx: W * (mobile ? .78 : .72), cy: H * (mobile ? .55 : .58), cell: pairSize() / N }),
+    left:  () => ({ cx: W * (mobile ? .22 : .28), cy: H * (mobile ? .55 : .6), cell: pairSize() / N }),
+    right: () => ({ cx: W * (mobile ? .78 : .72), cy: H * (mobile ? .55 : .6), cell: pairSize() / N }),
     // neuron grid (slide 11) and centred neuron grid (slide 12)
     neur:  () => mobile
       ? ({ cx: W / 2 + 12, cy: H * .52, cell: (W - 76) / N })
-      : ({ cx: W * .38, cy: H * .6, cell: Math.min(W * .5, H * .62) / N }),
+      : ({ cx: W * .38, cy: H * .62, cell: Math.min(W * .46, H * .55) / N }),
     neur2: () => mobile
       ? ({ cx: W / 2 + 12, cy: H * .52, cell: (W - 76) / N })
-      : ({ cx: W * .5, cy: H * .6, cell: Math.min(W * .62, H * .66) / N }),
+      : ({ cx: W * .5, cy: H * .62, cell: Math.min(W * .56, H * .58) / N }),
   };
-  const pairSize = () => mobile ? W * .34 : Math.min(W * .28, H * .5);
+  const pairSize = () => mobile ? W * .34 : Math.min(W * .26, H * .42);
   const lerpL = (a, b, p) => ({ cx: lerp(a.cx, b.cx, p), cy: lerp(a.cy, b.cy, p), cell: lerp(a.cell, b.cell, p) });
 
   // Main digit keyframes: [time, layout]. Equal neighbours = hold, different = transition.
@@ -644,10 +629,10 @@
   ];
 
   function variantBox(i) {
-    const s = mobile ? Math.min(H * .22, W * .36) : Math.min(H * .25, W * .24);
+    const s = mobile ? Math.min(H * .22, W * .36) : Math.min(H * .21, W * .22);
     const gap = s * .08;
     const cx = mobile ? W * .76 : W * .72;
-    const cy = H * (mobile ? .58 : .57) + (i - 1) * (s + gap);
+    const cy = H * (mobile ? .58 : .6) + (i - 1) * (s + gap);
     return { cx, cy, cell: s / N };
   }
 
@@ -810,7 +795,7 @@
     : { x: W * .28, y: H * .36, d: Math.min(140, H * .16) };
 
   function netA() {
-    const Y0 = H * (mobile ? .34 : .2), Y1 = H * .95, s = (Y1 - Y0) / 17.15;
+    const Y0 = H * (mobile ? .34 : .25), Y1 = H * .94, s = (Y1 - Y0) / 17.15;
     const w = mobile ? W * .6 : Math.min(W * .45, (Y1 - Y0) * .95);
     const xIn = mobile ? W * .2 : W * .43;
     const xs = [0, 1, 2, 3].map(k => xIn + w * k / 3);
@@ -913,7 +898,7 @@
         for (let i = 0; i < nA; i++) {
           const k = nodeApp(i);
           if (k <= 0) continue;
-          if (l === 0 && i === 4 && t < 20.05 && !OV.noLift) continue;     // the travelling neuron draws itself
+          if (l === 0 && i === 4 && ((t < 20.05 && !OV.noLift) || OV.hideA4)) continue;     // the travelling neuron draws itself
           list.push({ x: la[i].x, y: la[i].y, r: A.r * k, act: ACT_A[l][i] * actGate[l], alpha: clamp(k), key: i });
         }
       }
@@ -1081,7 +1066,7 @@
     ctx.globalAlpha = 1;
 
     // "784" while it's a row-train / plain square
-    const n784 = win(t, 25.15, 25.6, 28.1, 28.45) * (OV.no784 ? 0 : 1);
+    const n784 = OV.n784 ?? win(t, 25.15, 25.6, 28.1, 28.45) * (OV.no784 ? 0 : 1);
     const fsBig = mobile ? 30 : Math.max(28, Math.min(72, W * .04));
     if (n784 > 0) drawDigitGlyph('784', mobile ? W * .85 : W * .87, H * (mobile ? .17 : .2), fsBig, n784);
 
