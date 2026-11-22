@@ -46,7 +46,7 @@
     opacity: 0;
     will-change: transform, opacity, filter;
   }
-  .cap.top { top: 12vh; }
+  .cap.top { top: 16vh; }
   .cap.bottom { bottom: 6vh; }
   .cap .kicker {
     display: inline-block;
@@ -112,7 +112,7 @@
 
   @media (max-width: 700px) {
     .rail { display: none; }
-    .cap.top { top: 8vh; }
+    .cap.top { top: 11vh; }
     .cap.desk { display: none; }
     .cap.bottom { bottom: 4vh; }
   }
@@ -1593,8 +1593,9 @@
 
   const track = document.getElementById('track'), track2 = document.getElementById('track2');
   const resizeTrack = () => {
-    track.style.height = (SPLIT * UNIT + 1) * innerHeight + 'px';
-    track2.style.height = ((T_END - SPLIT) * UNIT + 1) * innerHeight + 'px';
+    computeDwells();
+    track.style.height = (uToRaw(SPLIT) * UNIT + 1) * innerHeight + 'px';
+    track2.style.height = ((uToRaw(T_END) - uToRaw(SPLIT)) * UNIT + 1) * innerHeight + 'px';
   };
 
   // ---------- Canvas ----------
@@ -1822,7 +1823,7 @@
     : { x: W * .28, y: H * .36, d: Math.min(140, H * .16) };
 
   function netA() {
-    const Y0 = H * (mobile ? .34 : .25), Y1 = H * .94, s = (Y1 - Y0) / 17.15;
+    const Y0 = H * (mobile ? .36 : .3), Y1 = H * .95, s = (Y1 - Y0) / 17.15;
     const w = mobile ? W * .6 : Math.min(W * .45, (Y1 - Y0) * .95);
     const xIn = mobile ? W * .2 : W * .43;
     const xs = [0, 1, 2, 3].map(k => xIn + w * k / 3);
@@ -2329,14 +2330,32 @@
   const readScroll = () => {
     const y = scrollY, h = innerHeight * UNIT, P = playSpan();
     // while the pad fully covers the screen the story jumps to part 2
-    const u = y < P.top ? Math.min(SPLIT, y / h) : SPLIT + 1e-4 + Math.max(0, y - P.bot) / h;
+    const s1 = uToRaw(SPLIT);
+    const u = y < P.top ? Math.min(SPLIT, rawToU(y / h)) : rawToU(s1 + 1e-4 + Math.max(0, y - P.bot) / h);
     tTarget = clamp(u, 0, T_END);
   };
-  const uToScroll = u => u <= SPLIT ? u * innerHeight * UNIT : playSpan().bot + (u - SPLIT) * innerHeight * UNIT;
+  const uToScroll = u => u <= SPLIT ? uToRaw(u) * innerHeight * UNIT : playSpan().bot + (uToRaw(u) - uToRaw(SPLIT)) * innerHeight * UNIT;
+  // the story pauses on every caption, so the finished picture and its text stay on screen for a while
+  const DWELL = .7, CAP_SHIFT = .25;
+  let DW = [];
+  function computeDwells() {
+    DW = caps.filter(c => c.el.dataset.key !== 'hero' && getComputedStyle(c.el).display !== 'none')
+      .map(c => ({ u: c.at, len: DWELL })).sort((a, b) => a.u - b.u);
+  }
+  function uToRaw(u) { let r = u; for (const d of DW) if (d.u < u) r += d.len; return r; }
+  function rawToU(r) {
+    let acc = 0;
+    for (const d of DW) {
+      if (r <= d.u + acc) return r - acc;
+      if (r <= d.u + acc + d.len) return d.u;
+      acc += d.len;
+    }
+    return r - acc;
+  }
 
   // ---------- Captions ----------
   const caps = [...document.querySelectorAll('.cap')].map(el => ({
-    el, at: ANCH[el.dataset.key] ?? +el.dataset.at, span: +el.dataset.span
+    el, at: el.dataset.key === 'hero' ? ANCH.hero : (ANCH[el.dataset.key] ?? +el.dataset.at) + .25, span: +el.dataset.span
   }));
   const heroShade = document.getElementById('heroShade');
   const hint = document.getElementById('hint'), credits = document.getElementById('credits');
@@ -2366,7 +2385,7 @@
       }
       let d = t < c.at ? (t - c.at) / c.span : (t - c.at) / c.ex;
       if (c.el.dataset.hold && d > 0) d = 0;
-      const o = d < 0 ? clamp((1 + d) / .3) : clamp((1 - d) / .16);
+      const o = ((c.at > SPLIT) !== (t > SPLIT)) ? 0 : d < 0 ? clamp((1 + d) / .45) : clamp((1 - d) / .16);
       const y = -d * 26;
       c.el.style.opacity = easeOut(o).toFixed(3);
       c.el.style.transform = `translate(-50%, ${y.toFixed(1)}px)`;
