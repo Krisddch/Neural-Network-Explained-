@@ -126,7 +126,7 @@
     min-height: 100vh;
     display: flex; align-items: center;
     padding: 9vh 16px 6vh;
-    box-shadow: 0 -60px 80px 20px #000;
+    box-shadow: 0 -60px 80px 20px #000, 0 60px 80px 20px #000;
   }
   .play-inner { width: min(1280px, 100%); margin: 0 auto; }
   .play-head { text-align: center; margin-bottom: 4vh; }
@@ -237,7 +237,6 @@
 <div class="hint" id="hint">scroll<i></i></div>
 
 <div id="track"></div>
-
 <section id="play" aria-label="Спробуй сам">
   <div class="play-inner">
     <div class="play-head">
@@ -262,6 +261,9 @@
     <p class="credit">Мережа 784 → 16 → 16 → 10 з натренованими вагами з <a href="https://github.com/3b1b/videos/tree/master/_2017/nn" target="_blank" rel="noopener">3b1b/videos</a></p>
   </div>
 </section>
+<div id="track2"></div>
+
+
 
 
 <script>
@@ -326,6 +328,7 @@
   let T_END = 43;
   const UNIT = 1.15;              // viewport heights of scroll per unit
   let STOPS = [];
+  let SPLIT = 0;
 
   // ---------- Story timeline ----------
   // The scroll position u (in screen-units) is mapped onto the scene renderers' own clock t.
@@ -388,6 +391,7 @@
     old([[0, 35.2], [1.0, 35.2]], p => ({ fill: actFill(1, lerp(.8, 1, seg(p, 0, .5)), 0), ye: [0, 1, seg(p, .1, .7)], yeA: [0, 1 - seg(p, 0, .2), 1] }), { p3: .7 });
     // 29  another digit: the brightest output neuron is the answer
     old([[0, 35.2], [1.6, 35.2], [.7, 35.2]], sixOV, { six: 1.9 });
+    SPLIT = u;                                 // the interactive digit pad sits here, between the two topics
     // ---- Part 2: autoencoders ----
     custom(1.5, bridgeAE, { ae: 1.5 });        // the network reshapes into an 8–5–3–5–8 autoencoder
     custom(.8, () => drawAE());
@@ -399,6 +403,12 @@
     custom(.6, () => personToPlot(1));
     custom(1.6, plotToArch, { arch: 1.7 });    // that plane is the bottleneck between encoder and decoder
     custom(2.2, archFlow, { flow: 1.2 });
+    custom(1.4, archToImages, { img: 1.4 });   // images instead of numbers: a 0 goes in…
+    custom(2.0, imgFlow);                      // …and a slightly blurry 0 comes out
+    custom(1.2, imagesToMSE, { mse: 1.3 });    // training: how far apart are the two images?
+    custom(2.6, mseScan);                      // pixel by pixel → mean squared error
+    custom(1.5, mseToLatent, { latent: 1.6 }); // 2 neurons in the bottleneck = a 2-D latent space
+    custom(3.2, latentFill);
     T_END = u;
   })();
   STOPS = Object.values(ANCH).sort((a, b) => a - b);
@@ -899,6 +909,209 @@
     void land;
   }
 
+
+  // ---------- Part 2b: images through the autoencoder, MSE, the latent space ----------
+  const ZERO = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.06,0.3,0.61,1,1,0.73,0.61,0.08,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.54,0.94,1,1,1,1,1,1,0.68,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.48,1,1,1,1,0.81,1,1,1,1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.2,0.96,1,1,1,0.52,0,0.59,1,1,1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.2,0.77,1,1,0.92,0.2,0,0,0,0.23,0.95,1,0.88,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.43,1,1,1,0.52,0,0,0,0,0,0.6,1,1,0.67,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.71,1,1,0.78,0,0,0,0,0,0,0,0.88,1,0.87,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.09,0.91,1,1,0.42,0,0,0,0,0,0,0,0.52,1,0.87,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.32,1,1,0.81,0.06,0,0,0,0,0,0,0,0.52,1,0.93,0.11,0,0,0,0,0],[0,0,0,0,0,0,0,0.54,1,1,0.3,0,0,0,0,0,0,0,0,0.52,1,1,0.32,0,0,0,0,0],[0,0,0,0,0,0,0,0.58,1,1,0,0,0,0,0,0,0,0,0,0.52,1,1,0.32,0,0,0,0,0],[0,0,0,0,0,0,0,0.78,1,1,0,0,0,0,0,0,0,0,0,0.52,1,1,0.32,0,0,0,0,0],[0,0,0,0,0,0,0,0.78,1,1,0,0,0,0,0,0,0,0,0,0.52,1,0.98,0.23,0,0,0,0,0],[0,0,0,0,0,0,0,0.79,1,1,0,0,0,0,0,0,0,0,0,0.87,1,0.5,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.22,0.95,1,0.68,0,0,0,0,0,0,0,0,0.96,0.96,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.42,1,1,0.24,0,0,0,0,0,0,0.67,1,0.72,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.15,0.7,1,0.51,0,0,0,0,0,0.31,0.97,0.96,0.18,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.14,0.92,0.99,0.58,0,0,0.18,0.42,0.96,1,0.6,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.1,0.76,0.99,0.87,0.46,0.97,1,1,0.75,0.15,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.24,0.77,1,0.61,0.61,0.25,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
+  const ZREC = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.17,0.28,0.32,0.31,0.29,0.18,0.1,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.07,0.32,0.58,0.72,0.8,0.82,0.73,0.46,0.23,0.1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.06,0.39,0.74,0.87,0.89,0.89,0.89,0.85,0.74,0.52,0.25,0.08,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.34,0.72,0.87,0.87,0.8,0.73,0.74,0.76,0.79,0.76,0.54,0.25,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.21,0.63,0.87,0.89,0.78,0.56,0.49,0.47,0.51,0.64,0.8,0.8,0.53,0.08,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.14,0.37,0.77,0.9,0.81,0.52,0.31,0.23,0.19,0.25,0.45,0.73,0.87,0.75,0.29,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.16,0.55,0.91,0.88,0.66,0.28,0.16,0.1,0.09,0.15,0.3,0.58,0.82,0.83,0.48,0.07,0,0,0,0,0],[0,0,0,0,0,0,0,0.24,0.74,0.91,0.8,0.43,0.2,0.07,0.08,0.06,0.08,0.22,0.45,0.7,0.84,0.62,0.14,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.38,0.83,0.92,0.72,0.29,0.12,0.05,0,0,0.06,0.16,0.36,0.59,0.82,0.71,0.27,0,0,0,0,0],[0,0,0,0,0,0,0.08,0.47,0.87,0.9,0.61,0.22,0.08,0,0,0,0,0.09,0.23,0.47,0.76,0.79,0.39,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.55,0.86,0.85,0.48,0.21,0.08,0,0,0,0,0.06,0.17,0.39,0.77,0.83,0.44,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.58,0.85,0.74,0.33,0.1,0,0,0,0,0,0,0.11,0.35,0.76,0.83,0.45,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.52,0.8,0.65,0.21,0.07,0,0,0,0,0,0.05,0.12,0.4,0.8,0.82,0.4,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.48,0.73,0.63,0.23,0.07,0,0,0,0,0,0.06,0.14,0.59,0.83,0.78,0.31,0,0,0,0,0],[0,0,0,0,0,0,0,0.37,0.69,0.59,0.27,0.08,0,0,0,0,0,0.08,0.32,0.72,0.85,0.68,0.17,0,0,0,0,0],[0,0,0,0,0,0,0,0.27,0.69,0.74,0.41,0.12,0,0,0,0,0.06,0.25,0.62,0.83,0.8,0.44,0.08,0,0,0,0,0],[0,0,0,0,0,0,0,0.14,0.63,0.85,0.69,0.3,0.09,0,0.06,0.16,0.3,0.58,0.8,0.82,0.56,0.18,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.08,0.43,0.78,0.79,0.61,0.42,0.35,0.37,0.55,0.77,0.87,0.86,0.65,0.28,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.15,0.55,0.78,0.88,0.92,0.91,0.94,0.95,0.94,0.83,0.58,0.23,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.13,0.37,0.75,0.9,0.91,0.87,0.82,0.69,0.44,0.14,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.14,0.22,0.3,0.31,0.22,0.09,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
+  const FOUR = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.7,0.4,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.93,0.53,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.25,1.0,0.54,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.18,0.71,0.14,0,0,0,0,0,0.26,1,0.36,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.41,0.99,0.38,0,0,0,0,0,0.38,0.99,0.26,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.65,0.98,0.25,0,0,0,0,0,0.76,0.93,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.05,0.9,0.68,0,0,0,0,0,0,0.79,0.91,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.25,1,0.49,0,0,0,0,0,0,0.92,0.69,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.5,1,0.22,0,0,0,0,0,0.45,0.97,0.45,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.88,0.93,0.34,0.64,0.72,0.76,1.0,0.99,0.99,0.99,0.49,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.99,0.99,1,0.99,0.85,0.73,0.74,0.73,0.99,1.0,0.98,0.43,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.86,0.95,0.52,0.12,0,0,0,0,0.91,1.0,0.97,0.78,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.07,0.08,0,0,0,0,0,0.1,0.95,0.84,0.23,0.15,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.44,0.99,0.55,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.49,0.99,0.34,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.52,1.0,0.29,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.52,1.0,0.27,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.71,1,0.42,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.76,0.99,0.38,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.55,0.77,0.07,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.14,0.19,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
+  function shifted(D, dx, dy, gain = 1) {
+    const o = new Float32Array(NN);
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const sr = r - dy, sc = c - dx;
+      if (sr >= 0 && sr < N && sc >= 0 && sc < N) o[r * N + c] = Math.min(1, D[sr * N + sc] * gain);
+    }
+    return o;
+  }
+  function drawImg(D, cx, cy, size, a, frameA = a, D2 = null, mix = 0) {
+    if (a <= 0 && frameA <= 0) return;
+    const c = size / N, x0 = cx - size / 2, y0 = cy - size / 2;
+    if (a > 0) for (let i = 0; i < NN; i++) {
+      const v = D2 ? lerp(D[i], D2[i], mix) : D[i];
+      if (v <= .03) continue;
+      const g = (v * 255) | 0; ctx.fillStyle = `rgba(${g},${g},${g},${a})`;
+      ctx.fillRect(x0 + (i % N) * c, y0 + ((i / N) | 0) * c, c + .4, c + .4);
+    }
+    if (frameA > 0) { ctx.strokeStyle = `rgba(230,230,230,${frameA})`; ctx.lineWidth = Math.max(1, size * .006); ctx.strokeRect(x0, y0, size, size); }
+  }
+  // boxes in the arch's own coordinates
+  const BOX_IN = 215, BOX_OUT = 1785, BOX_S = 302;
+  function archBoxes(M) {
+    const a = M.P(BOX_IN, 177), b = M.P(BOX_OUT, 177);
+    return { a, b, s: BOX_S * M.k };
+  }
+  function archImgLabels(M, a) {
+    const B = archBoxes(M), fs = Math.max(13, 48 * M.k);
+    const off = B.s / 2 + fs * (mobile ? .9 : 1.1);
+    if (mobile) { text('Вхід', B.a.x - B.s / 2 - 8, B.a.y, fs, a, 'right'); text('Вихід', B.b.x - B.s / 2 - 8, B.b.y, fs, a, 'right'); }
+    else { text('Вхід', B.a.x, B.a.y - off, fs, a); text('Вихід', B.b.x, B.b.y - off, fs, a); }
+  }
+  function archToImages(p) {
+    const M = archMap(), k = M.k, B = archBoxes(M);
+    drawArch({ inA: 0, outBrA: 0 });
+    // the 2×2 matrices turn into image frames
+    const q = seg(p, .05, .6);
+    [[190, B.a], [1802, B.b]].forEach(([icx, to], j) => {
+      const c0 = M.P(icx, 177), cx = lerp(c0.x, to.x, q), cy = lerp(c0.y, to.y, q);
+      const hw = lerp(163 * k, B.s / 2, q), hh = lerp(92 * k, B.s / 2, q), tick = lerp(14 * k, hw, q);
+      bracketPair(cx, cy, hw, hh, tick, 1, lerp(Math.max(1.5, 4 * k), Math.max(1, B.s * .006), q));
+      const fs = Math.max(13, 52 * k);
+      MOFF.forEach(([dx, dy], i) => text(IN4[i], c0.x + dx * k, c0.y + dy * k, fs, 1 - seg(p, 0, .3)));
+    });
+    drawImg(ZERO, B.a.x, B.a.y, B.s, seg(p, .45, .9), 0);
+    archImgLabels(M, seg(p, .6, 1));
+  }
+  function imgFlow(p) {
+    const M = archMap(), B = archBoxes(M), bc = M.P(996, 177);
+    const glow = Math.sin(Math.PI * seg(p, .3, .55));
+    drawArch({ inA: 0, outBrA: 0, glow });
+    drawImg(ZERO, B.a.x, B.a.y, B.s, 1);
+    archImgLabels(M, 1);
+    const c = B.s / N;
+    const done = seg(p, .55, .95);
+    drawImg(ZREC, B.b.x, B.b.y, B.s, 0, 1);
+    for (let i = 0; i < NN; i++) {
+      const r = (i / N) | 0, col = i % N;
+      const ix = B.a.x - B.s / 2 + (col + .5) * c, iy = B.a.y - B.s / 2 + (r + .5) * c;
+      const ox = B.b.x - B.s / 2 + (col + .5) * c, oy = B.b.y - B.s / 2 + (r + .5) * c;
+      if (ZERO[i] > .3) {                                 // pixels squeezed into the bottleneck
+        const q1 = seg(p, .02 + seeds[i].d * .2, .32 + seeds[i].d * .2);
+        if (q1 > 0 && q1 < 1) {
+          const s = c * lerp(1, .25, q1), g = (ZERO[i] * 255) | 0;
+          ctx.fillStyle = `rgba(${g},${g},${Math.min(255, g * .3 + 140)},${1 - seg(q1, .7, 1)})`;
+          ctx.fillRect(lerp(ix, bc.x, ease(q1)) - s / 2, lerp(iy, bc.y, ease(q1)) - s / 2, s, s);
+        }
+      }
+      if (ZREC[i] > .03) {                                // …and rebuilt by the decoder
+        const q2 = seg(done, seeds[i].d * .35, .65 + seeds[i].d * .35);
+        if (q2 <= 0) continue;
+        const s = c * lerp(.25, 1, q2) + .4, g = (ZREC[i] * 255) | 0;
+        ctx.fillStyle = `rgba(${g},${g},${g},${seg(q2, 0, .3)})`;
+        ctx.fillRect(lerp(bc.x, ox, ease(q2)) - s / 2, lerp(bc.y, oy, ease(q2)) - s / 2, s, s);
+      }
+    }
+  }
+
+  // MSE: compare pixel by pixel
+  function mseGeom() {
+    const s = mobile ? W * .42 : Math.min(W * .3, H * .5);
+    const y = H * (mobile ? .38 : .42), d = s * (mobile ? .56 : .67);
+    return { s, a: { x: W / 2 - d, y }, b: { x: W / 2 + d, y }, ty: y + s / 2 + H * (mobile ? .1 : .13), fs: mobile ? 26 : Math.min(64, W * .04) };
+  }
+  function imagesToMSE(p) {
+    const M = archMap(), B = archBoxes(M), G = mseGeom();
+    const f = 1 - seg(p, 0, .35);
+    if (f > 0) { ctx.save(); ctx.globalAlpha = f; drawArch({ inA: 0, outBrA: 0 }); ctx.restore(); archImgLabels(M, f); }
+    const q = seg(p, .15, .85);
+    drawImg(ZERO, lerp(B.a.x, G.a.x, q), lerp(B.a.y, G.a.y, q), lerp(B.s, G.s, q), 1);
+    drawImg(ZREC, lerp(B.b.x, G.b.x, q), lerp(B.b.y, G.b.y, q), lerp(B.s, G.s, q), 1);
+  }
+  const SCAN = (() => { const l = []; for (let i = 0; i < NN; i++) if (Math.max(ZERO[i], ZREC[i]) > .2 && (i % N) % 2 === 0) l.push(i); return l; })();
+  function mseScan(p) {
+    const G = mseGeom();
+    drawImg(ZERO, G.a.x, G.a.y, G.s, 1); drawImg(ZREC, G.b.x, G.b.y, G.s, 1);
+    const scanP = clamp(p / .62);
+    const idx = SCAN[Math.min(SCAN.length - 1, Math.floor(scanP * SCAN.length))];
+    const c = G.s / N, r = (idx / N) | 0, col = idx % N;
+    const hlA = 1 - seg(p, .6, .7);
+    if (hlA > 0) for (const B of [G.a, G.b]) {
+      ctx.strokeStyle = `rgba(230,220,78,${hlA})`; ctx.lineWidth = 2;
+      ctx.strokeRect(B.x - G.s / 2 + col * c, B.y - G.s / 2 + r * c, c, c);
+    }
+    const va = Math.round(ZERO[idx] * 255), vb = Math.round(ZREC[idx] * 255);
+    const t1 = 1 - seg(p, .62, .72), t2 = seg(p, .72, .85);
+    text(`${va}   −   ${vb}`, W / 2, G.ty, G.fs, seg(p, 0, .08) * t1);
+    text('MSE = ¹⁄₇₈₄ Σ (вхід − вихід)²', W / 2, G.ty, G.fs * (mobile ? .8 : .9), t2);
+  }
+
+  // the latent space: 2 bottleneck neurons = a point on a plane
+  function latentGeom() {
+    if (!mobile) {
+      const ks = Math.min(W * .98 / 2000, H * .92 / 1050), P = (ix, iy) => ({ x: W / 2 + (ix - 1000) * ks, y: H / 2 + (iy - 525) * ks });
+      return { ks, P, box: { ...P(133, 457), s: 186 * ks }, ar: [P(241, 457), P(330, 457)], enc: [[343, 389], [481, 430], [481, 487], [343, 525]].map(q => P(...q)), bot: [P(507, 429), P(643, 486)], O: P(990, 977), X: P(1884, 977).x, Y: P(990, 85).y, fs: Math.max(13, 40 * ks) };
+    }
+    const km = W * .9 / 643, P = (ix, iy) => ({ x: W * .05 + (ix - 40) * km, y: H * .2 + (iy - 457) * km });
+    return { ks: km, P, box: { ...P(133, 457), s: 186 * km }, ar: [P(241, 457), P(330, 457)], enc: [[343, 389], [481, 430], [481, 487], [343, 525]].map(q => P(...q)), bot: [P(507, 429), P(643, 486)], O: { x: W * .14, y: H * .9 }, X: W * .92, Y: H * .9 - W * .78, fs: 14 };
+  }
+  const plotXY = (G, u, v) => ({ x: lerp(G.O.x, G.X, u), y: lerp(G.O.y, G.Y, v) });
+  const PTS = [
+    [.78, .85, 0], [.85, .82, 0], [.80, .80, 0], [.84, .81, 0], [.81, .78, 0],
+    [.08, .14, 1], [.12, .11, 1], [.10, .09, 1],
+  ];
+  const PT_COL = ['232,112,90', '146,193,104'];
+  const PT_IMG = [shifted(SEVEN, 0, 0), shifted(SEVEN, 1, 0, .95), shifted(SEVEN, -1, 1), shifted(SEVEN, 0, -1, .9), shifted(SEVEN, 1, 1),
+                  shifted(FOUR, 0, 0), shifted(FOUR, 1, 0, .95), shifted(FOUR, -1, 1)];
+  function drawLatentPipe(G, a = 1, u = 1, glow = 0) {
+    const lw = Math.max(1.5, 7 * G.ks);
+    const e0 = G.enc[0], e1 = G.enc[1], e2 = G.enc[2], e3 = G.enc[3];
+    const enc = [{ x: lerp(e1.x, e0.x, u), y: lerp(e1.y, e0.y, u) }, e1, e2, { x: lerp(e2.x, e3.x, u), y: lerp(e2.y, e3.y, u) }];
+    ctx.save(); ctx.globalAlpha = a * Math.min(1, u * 3); ctx.strokeStyle = `rgb(${PURPLE})`; ctx.lineWidth = lw;
+    ctx.beginPath(); enc.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); ctx.stroke(); ctx.restore();
+    const [b0, b1] = G.bot;
+    if (glow > 0) { ctx.fillStyle = `rgba(111,183,214,${.3 * glow})`; ctx.fillRect(b0.x, b0.y, b1.x - b0.x, b1.y - b0.y); }
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#6fb7d6'; ctx.lineWidth = lw; ctx.strokeRect(b0.x, b0.y, b1.x - b0.x, b1.y - b0.y); ctx.restore();
+    const ew = Math.abs(e1.x - e0.x), bw = Math.abs(b1.x - b0.x);
+    text('Енкодер', (e0.x + e1.x) / 2 + 2, e1.y + (e2.y - e1.y) / 2, Math.min(G.fs * .85, ew / 5), a * u);
+    text('Вузьке місце', (b0.x + b1.x) / 2, (b0.y + b1.y) / 2, Math.min(G.fs * .72, bw / 7.2), a);
+    arrowTo(G.ar[0].x, G.ar[0].y, G.ar[1].x, G.ar[1].y, u, a, Math.max(2, 5 * G.ks), 16 * G.ks);
+  }
+  function drawLatentAxes(G, p) {
+    const lw = Math.max(2, 4 * G.ks), tk = 14 * G.ks + 3;
+    const ya = seg(p, 0, .5), xa = seg(p, .15, .65), la = seg(p, .45, .9);
+    if (ya > 0) { ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(G.O.x, G.O.y); ctx.lineTo(G.O.x, lerp(G.O.y, G.Y, ya)); ctx.stroke(); }
+    if (xa > 0) { ctx.beginPath(); ctx.moveTo(G.O.x, G.O.y); ctx.lineTo(lerp(G.O.x, G.X, xa), G.O.y); ctx.stroke(); }
+    if (la <= 0) return;
+    ctx.globalAlpha = la;
+    for (const v of [.5, 1]) {
+      const py = lerp(G.O.y, G.Y, v), px = lerp(G.O.x, G.X, v);
+      ctx.beginPath(); ctx.moveTo(G.O.x - tk, py); ctx.lineTo(G.O.x + tk, py); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px, G.O.y - tk); ctx.lineTo(px, G.O.y + tk); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    const fs = G.fs;
+    text('1.0', G.O.x - tk - 6, G.Y, fs, la, 'right'); text('0.5', G.O.x - tk - 6, lerp(G.O.y, G.Y, .5), fs, la, 'right');
+    text('0.5', lerp(G.O.x, G.X, .5), G.O.y + fs * 1.3, fs, la); text('1.0', G.X, G.O.y + fs * 1.3, fs, la);
+    text('Нейрон 2', G.O.x + tk + 8, G.Y, fs * 1.1, la, 'left', 'italic ');
+    text('Нейрон 1', G.X, G.O.y - fs * 1.3, fs * 1.1, la, 'right', 'italic ');
+  }
+  function mseToLatent(p) {
+    const M = mseGeom(), G = latentGeom();
+    const f = 1 - seg(p, 0, .3);
+    drawImg(ZREC, M.b.x, M.b.y, M.s, f, f);
+    text('MSE = ¹⁄₇₈₄ Σ (вхід − вихід)²', W / 2, M.ty, M.fs * (mobile ? .8 : .9), f);
+    const q = seg(p, .1, .7);
+    drawImg(ZERO, lerp(M.a.x, G.box.x, q), lerp(M.a.y, G.box.y, q), lerp(M.s, G.box.s, q), 1);
+    const u = seg(p, .55, .95);
+    if (u > 0) drawLatentPipe(G, 1, u);
+    drawLatentAxes(G, seg(p, .45, 1));
+  }
+  function latentFill(p) {
+    const G = latentGeom(), n = PTS.length, w = 1 / n;
+    const j = Math.min(n - 1, Math.floor(p / w)), lp = (p - j * w) / w;
+    // input image: previous → current
+    const prev = j === 0 ? ZERO : PT_IMG[j - 1];
+    drawImg(prev, G.box.x, G.box.y, G.box.s, 1, 1, PT_IMG[j], seg(lp, 0, .25));
+    const bc = { x: (G.bot[0].x + G.bot[1].x) / 2, y: (G.bot[0].y + G.bot[1].y) / 2 };
+    const glow = Math.sin(Math.PI * seg(lp, .3, .6));
+    drawLatentPipe(G, 1, 1, glow);
+    drawLatentAxes(G, 1);
+    // a pulse through the encoder…
+    const q1 = seg(lp, .2, .5);
+    if (q1 > 0 && q1 < 1) {
+      ctx.beginPath(); ctx.arc(lerp(G.box.x + G.box.s / 2, bc.x, q1), lerp(G.box.y, bc.y, q1), 5 * (1 - q1 * .5), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${PT_COL[PTS[j][2]]},${1 - q1 * .3})`; ctx.fill();
+    }
+    // …becomes a point in the latent plane
+    PTS.forEach(([u, v, cl], k) => {
+      if (k > j) return;
+      const T = plotXY(G, u, v);
+      const q = k < j ? 1 : seg(lp, .5, .9);
+      if (q <= 0) return;
+      const x = lerp(bc.x, T.x, ease(q)), y = lerp(bc.y, T.y, ease(q)) - Math.sin(q * Math.PI) * 40;
+      ctx.beginPath(); ctx.arc(x, y, Math.max(4, 9 * G.ks) * (k < j ? 1 : backOut(Math.min(1, q * 1.4))), 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${PT_COL[cl]})`; ctx.fill();
+    });
+  }
+
   function frame(now) {
     const u = tNow; U = u;
     const e = TL.find(s => u >= s.u0 && u <= s.u1) || TL[TL.length - 1];
@@ -919,8 +1132,11 @@
     updateDOM(u);
   }
 
-  const track = document.getElementById('track');
-  const resizeTrack = () => track.style.height = (T_END * UNIT + 1) * innerHeight + 'px';
+  const track = document.getElementById('track'), track2 = document.getElementById('track2');
+  const resizeTrack = () => {
+    track.style.height = (SPLIT * UNIT + 1) * innerHeight + 'px';
+    track2.style.height = ((T_END - SPLIT) * UNIT + 1) * innerHeight + 'px';
+  };
 
   // ---------- Canvas ----------
   const cv = document.getElementById('stage');
@@ -1645,7 +1861,15 @@
 
   // ---------- Scroll state ----------
   let tTarget = 0, tNow = 0;
-  const readScroll = () => { tTarget = clamp(scrollY / (innerHeight * UNIT), 0, T_END); };
+  // scroll → story position; the story pauses while the interactive section passes over it
+  const playSec = document.getElementById('play');
+  const playSpan = () => ({ top: playSec.offsetTop, bot: playSec.offsetTop + playSec.offsetHeight });
+  const readScroll = () => {
+    const y = scrollY, h = innerHeight * UNIT, P = playSpan();
+    const u = y <= P.top ? Math.min(SPLIT, y / h) : y < P.bot ? SPLIT : SPLIT + (y - P.bot) / h;
+    tTarget = clamp(u, 0, T_END);
+  };
+  const uToScroll = u => u <= SPLIT ? u * innerHeight * UNIT : playSpan().bot + (u - SPLIT) * innerHeight * UNIT;
 
   // ---------- Captions ----------
   const caps = [...document.querySelectorAll('.cap')].map(el => ({
@@ -1658,7 +1882,7 @@
   const railBtns = STOPS.map((s, i) => {
     const b = document.createElement('button');
     b.setAttribute('aria-label', 'Розділ ' + (i + 1));
-    b.onclick = () => scrollTo({ top: s * innerHeight * UNIT, behavior: 'smooth' });
+    b.onclick = () => scrollTo({ top: uToScroll(s), behavior: 'smooth' });
     rail.appendChild(b); return b;
   });
 
