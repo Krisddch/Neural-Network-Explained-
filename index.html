@@ -1606,7 +1606,7 @@
     const s = Math.min(H * .24, W * .15);
     return { s, a: { x: W * .17, y: H * .44 }, b: { x: W * .17, y: H * .44 + s * 1.35 }, ox: W * .38, oy: H * .87, xe: W * .9, yt: H * .33, fs: Math.max(15, Math.min(28, W * .017)) };
   }
-  const lossAt = e => .02 + .3 * Math.exp(-5.5 * e);
+  const lossAt = e => .024 + .3 * Math.exp(-5.5 * e);   // ends at ≈0.026, the MSE computed on the previous slide
   const curveXY = (G, e) => ({ x: lerp(G.ox, G.xe, e), y: lerp(G.oy, G.yt, lossAt(e) / .34) });
   function drawAxes(G, a, xl, yl, la = a) {
     if (a <= 0) return;
