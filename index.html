@@ -162,6 +162,13 @@
     .pad-col { width: min(320px, 100%); margin: 0 auto; }
     #netview { height: 62vh; }
   }
+  .credits {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3;
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: calc(100vw - 32px);
+    font-size: 12px; color: #6d6d6d; opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .credits a { color: #9fcde0; text-decoration: none; border-bottom: 1px solid rgba(159,205,224,.35); }
+  .credits a:hover { color: #fff; border-color: #fff; }
 </style>
 </head>
 <body>
@@ -235,6 +242,11 @@
 
 <nav class="rail" id="rail" aria-label="Розділи"></nav>
 <div class="hint" id="hint">scroll<i></i></div>
+<div class="credits" id="credits">
+  <a href="https://www.3blue1brown.com/lessons/neural-networks" target="_blank" rel="noopener">3Blue1Brown — But what is a neural network?</a>
+  <span>·</span>
+  <a href="https://www.youtube.com/watch?v=hZ4a4NgM3u0" target="_blank" rel="noopener">Автоенкодери — відео на YouTube</a>
+</div>
 
 <div id="track"></div>
 <section id="play" aria-label="Спробуй сам">
@@ -393,8 +405,7 @@
     old([[0, 35.2], [1.6, 35.2], [.7, 35.2]], sixOV, { six: 1.9 });
     SPLIT = u;                                 // the interactive digit pad sits here, between the two topics
     // ---- Part 2: autoencoders ----
-    custom(1.5, bridgeAE, { ae: 1.5 });        // the network reshapes into an 8–5–3–5–8 autoencoder
-    custom(.8, () => drawAE());
+    custom(1.0, () => drawAE(), { ae: .2 });  // straight to the 8–5–3–5–8 autoencoder
     custom(1.4, aeToData, { data: 1.5 });      // big data → a few features
     custom(.7, dataStatic);
     custom(1.4, dataToPerson, { person: 1.5 });// describe a person with two numbers
@@ -409,6 +420,12 @@
     custom(2.6, mseScan);                      // pixel by pixel → mean squared error
     custom(1.5, mseToLatent, { latent: 1.6 }); // 2 neurons in the bottleneck = a 2-D latent space
     custom(3.2, latentFill);
+    custom(1.6, latentToArchs, { archs: 1.5 });  // a fully-connected and a convolutional autoencoder
+    custom(.8, () => drawArchs(1));
+    custom(1.6, archsToFinale, { final: 1.6 }); // the 3 from the very beginning…
+    custom(2.4, finaleFlow);                     // …squeezed to its essence and rebuilt
+    custom(2.0, finaleToThanks, { thanks: 2.0 });
+    custom(1.2, () => finaleToThanks(1));
     T_END = u;
   })();
   STOPS = Object.values(ANCH).sort((a, b) => a - b);
@@ -665,15 +682,13 @@
     if (a <= 0) return;
     const X = u => cx + u * ph, Y = v => top + v * ph;
     ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff';
-    ctx.beginPath(); ctx.arc(X(0), Y(.085), .083 * ph, 0, Math.PI * 2); ctx.fill();
     const rr = (x, y, w, h, r) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(X(x), Y(y), w * ph, h * ph, r * ph); else ctx.rect(X(x), Y(y), w * ph, h * ph); ctx.fill(); };
-    rr(-.205, .187, .317, .4, .06);
-    rr(-.112, .5, .108, .5, .054); rr(.004, .5, .108, .5, .054);
-    ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = .075 * ph;
-    ctx.beginPath(); ctx.moveTo(X(.075), Y(.23)); ctx.lineTo(X(.225), Y(.37)); ctx.lineTo(X(.37), Y(.22)); ctx.stroke();
-    ctx.strokeStyle = '#000'; ctx.lineWidth = .014 * ph; ctx.lineCap = 'butt';
-    ctx.beginPath(); ctx.moveTo(X(-.13), Y(.3)); ctx.lineTo(X(-.13), Y(.6)); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(X(-.004), Y(.6)); ctx.lineTo(X(-.004), Y(1)); ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(0), Y(.088), .088 * ph, 0, Math.PI * 2); ctx.fill();   // head
+    rr(-.19, .205, .38, .37, .075);                                                    // torso
+    rr(-.13, .5, .12, .5, .06); rr(.01, .5, .12, .5, .06);                             // legs
+    rr(-.19, .23, .075, .37, .0375);                                                   // left arm
+    ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = .08 * ph;                    // right arm, waving
+    ctx.beginPath(); ctx.moveTo(X(.14), Y(.255)); ctx.lineTo(X(.26), Y(.375)); ctx.lineTo(X(.38), Y(.245)); ctx.stroke();
     ctx.restore();
   }
   function personGeom(which) {
@@ -710,10 +725,7 @@
     bracketPair(c.x, c.y, 163 * k, 92 * k, 14 * k, a, Math.max(1.5, 4 * k));
     MOFF.forEach(([dx, dy], i) => text(vals[i], c.x + dx * k, c.y + dy * k, fs, a * (entryA ? entryA(i) : 1)));
   }
-  function boxLabel(c, fs, a) {
-    if (mobile) { text('Вузьке', c.x, c.y - fs * .6, fs, a); text('місце', c.x, c.y + fs * .6, fs, a); }
-    else text('Вузьке місце', c.x, c.y, fs, a);
-  }
+  function boxLabel(c, fs, a) { text('Bottleneck', c.x, c.y, fs, a); }
   function drawArch(o) {
     const M = archMap(), k = M.k, lw = Math.max(1.5, 4 * k), fs = Math.max(11, 36 * k);
     // encoder / decoder unfold from the bottleneck
@@ -1051,7 +1063,7 @@
     ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#6fb7d6'; ctx.lineWidth = lw; ctx.strokeRect(b0.x, b0.y, b1.x - b0.x, b1.y - b0.y); ctx.restore();
     const ew = Math.abs(e1.x - e0.x), bw = Math.abs(b1.x - b0.x);
     text('Енкодер', (e0.x + e1.x) / 2 + 2, e1.y + (e2.y - e1.y) / 2, Math.min(G.fs * .85, ew / 5), a * u);
-    text('Вузьке місце', (b0.x + b1.x) / 2, (b0.y + b1.y) / 2, Math.min(G.fs * .72, bw / 7.2), a);
+    text('Bottleneck', (b0.x + b1.x) / 2, (b0.y + b1.y) / 2, Math.min(G.fs * .72, bw / 6.2), a);
     arrowTo(G.ar[0].x, G.ar[0].y, G.ar[1].x, G.ar[1].y, u, a, Math.max(2, 5 * G.ks), 16 * G.ks);
   }
   function drawLatentAxes(G, p) {
@@ -1110,6 +1122,184 @@
       ctx.beginPath(); ctx.arc(x, y, Math.max(4, 9 * G.ks) * (k < j ? 1 : backOut(Math.min(1, q * 1.4))), 0, Math.PI * 2);
       ctx.fillStyle = `rgb(${PT_COL[cl]})`; ctx.fill();
     });
+  }
+
+
+  // ---------- Finale: two kinds of autoencoders, the opening 3 through an autoencoder, thanks ----------
+  function aeGeomAt(cx, cy, S) {
+    const xo = [-6.28, -2.5, 0, 2.5, 6.28], n = [8, 5, 3, 5, 8];
+    return { layers: n.map((k, l) => Array.from({ length: k }, (_, i) => ({ x: cx + xo[l] * S, y: cy + (i - (k - 1) / 2) * S }))), r: S * .25, S };
+  }
+  const archsLayout = () => mobile
+    ? { net: { cx: W / 2, cy: H * .3, S: Math.min(W * .065, H * .04) }, conv: { cx: W / 2, cy: H * .68, w: W * .9 } }
+    : { net: { cx: W * .2, cy: H * .52, S: Math.min(W * .026, H * .05) }, conv: { cx: W * .72, cy: H * .52, w: W * .44 } };
+  // [colour, width, height, depth, arrow after]
+  const CONV = [['b', 12, 165, 48], ['g', 10, 165, 48, 1], ['b', 55, 95, 30], ['g', 8, 95, 30, 1], ['b', 28, 48, 16], ['g', 5, 48, 16, 1],
+                ['b', 38, 22, 14], ['g', 4, 22, 14, 1], ['b', 28, 48, 16], ['g', 5, 48, 16, 1], ['b', 55, 95, 30], ['g', 8, 95, 30, 1],
+                ['b', 12, 165, 48], ['g', 6, 165, 48]];
+  const CCOL = { b: [[120, 196, 226], [172, 222, 242], [88, 168, 204]], g: [[152, 200, 108], [190, 224, 152], [122, 172, 84]] };
+  function drawConv(L, p) {
+    const GAP = 8, AR = 34;
+    let tot = 0;
+    CONV.forEach(([, w, , d, ar]) => { tot += w + d * .55 + (ar ? AR : GAP); });
+    const k = L.w / tot;
+    let x = L.cx - L.w / 2;
+    CONV.forEach(([c, w, h, d, ar], i) => {
+      const a = seg(p, i * .045, i * .045 + .3);
+      const W2 = w * k, H2 = h * k * a, dx = d * .55 * k, dy = d * .45 * k * a;
+      if (a > 0) {
+        const y0 = L.cy - H2 / 2 + dy / 2, y1 = y0 + H2, [f, t, s] = CCOL[c];
+        const face = (pts, col) => { ctx.beginPath(); pts.forEach(([px, py], j) => j ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.closePath(); ctx.fillStyle = `rgba(${col},${.88 * a})`; ctx.fill(); ctx.strokeStyle = `rgba(255,255,255,${.35 * a})`; ctx.lineWidth = 1; ctx.stroke(); };
+        face([[x, y0], [x + W2, y0], [x + W2, y1], [x, y1]], f);
+        face([[x, y0], [x + W2, y0], [x + W2 + dx, y0 - dy], [x + dx, y0 - dy]], t);
+        face([[x + W2, y0], [x + W2 + dx, y0 - dy], [x + W2 + dx, y1 - dy], [x + W2, y1]], s);
+      }
+      x += W2 + dx;
+      if (ar) { arrowTo(x + AR * k * .2, L.cy, x + AR * k * .8, L.cy, seg(p, i * .045 + .15, i * .045 + .35), 1, Math.max(2, 3 * k), 9 * k); x += AR * k; }
+      else x += GAP * k;
+    });
+  }
+  function drawArchs(p) {
+    const L = archsLayout(), G = aeGeomAt(L.net.cx, L.net.cy, L.net.S);
+    const nodes = G.layers.map((layer, l) => layer.map(n => { const a = seg(p, l * .07, .3 + l * .07); return { ...n, r: G.r * backOut(a), a: clamp(a), fill: 0 }; }));
+    drawNodesEdges(nodes, .9 * seg(p, .3, .7), Math.max(1, G.S * .06));
+    drawConv(L.conv, seg(p, .2, 1));
+  }
+  function composite(fn, a) {
+    if (a <= 0) return;
+    offCtx.clearRect(0, 0, W, H); ctx = offCtx; fn(); ctx = mainCtx;
+    ctx.globalAlpha = a; ctx.drawImage(off, 0, 0, W, H); ctx.globalAlpha = 1;
+  }
+  function latentToArchs(p) {
+    composite(() => latentFill(1), 1 - seg(p, 0, .3));
+    if (p > .08) drawArchs(seg(p, .08, 1));
+  }
+
+  // the opening 3, compressed and rebuilt
+  const BLUR3 = (() => {
+    const o = new Float32Array(NN), K = [1, 2, 1];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      let s = 0, ws = 0;
+      for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+        const rr = r + a, cc = c + b; if (rr < 0 || cc < 0 || rr >= N || cc >= N) continue;
+        const w = K[a + 1] * K[b + 1]; s += MAIN[rr * N + cc] * w; ws += w;
+      }
+      o[r * N + c] = Math.min(1, Math.pow(s / ws, .85) * 1.05);
+    }
+    return o;
+  })();
+  function finaleArch(o = {}) { drawArch({ inA: 0, outBrA: 0, ...o }); }
+  function archsToFinale(p) {
+    composite(() => drawArchs(1), 1 - seg(p, 0, .35));
+    const M = archMap(), B = archBoxes(M);
+    if (p > .3) finaleArch({ unfold: seg(p, .35, .8), labA: seg(p, .6, .9), boxA: seg(p, .35, .6), boxLabA: seg(p, .5, .8), arrowP: seg(p, .55, .9), encA: seg(p, .3, .5) });
+    drawImg(MAIN, B.a.x, B.a.y, B.s, 0, seg(p, .5, .8));
+    drawImg(MAIN, B.b.x, B.b.y, B.s, 0, seg(p, .6, .9));
+    const c = B.s / N, q = seg(p, .45, 1);
+    for (let i = 0; i < NN; i++) {                          // the 3 assembles, like at the very start
+      const v = MAIN[i]; if (v <= .03) continue;
+      const k = easeOut(clamp((q - seeds[i].d * .45) / .55)); if (k <= 0) continue;
+      const R = Math.max(W, H) * .4 * seeds[i].r;
+      const x = B.a.x - B.s / 2 + ((i % N) + .5) * c + Math.cos(seeds[i].a) * R * (1 - k);
+      const y = B.a.y - B.s / 2 + (((i / N) | 0) + .5) * c + Math.sin(seeds[i].a) * R * (1 - k);
+      const g = (v * 255) | 0; ctx.fillStyle = `rgba(${g},${g},${g},${k})`; ctx.fillRect(x - c / 2, y - c / 2, c + .4, c + .4);
+    }
+  }
+  function finaleFlow(p) {
+    const M = archMap(), B = archBoxes(M), bc = M.P(996, 177), c = B.s / N;
+    const glow = Math.sin(Math.PI * seg(p, .28, .62));
+    finaleArch({ glow });
+    drawImg(MAIN, B.a.x, B.a.y, B.s, 1);
+    drawImg(MAIN, B.b.x, B.b.y, B.s, 0, 1);
+    // two latent neurons: the "essence" of the 3
+    const la = Math.sin(Math.PI * seg(p, .25, .7));
+    if (la > 0) for (const d of [-1, 1]) {
+      ctx.save(); ctx.shadowColor = 'rgba(230,220,78,.9)'; ctx.shadowBlur = 18 * la;
+      ctx.beginPath(); ctx.arc(bc.x + d * 26 * M.k * (mobile ? 1.6 : 1), bc.y + (mobile ? 0 : 30 * M.k), 9 * M.k + 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(230,220,78,${la})`; ctx.fill(); ctx.restore();
+    }
+    const done = seg(p, .55, .97);
+    for (let i = 0; i < NN; i++) {
+      const r = (i / N) | 0, col = i % N;
+      const ix = B.a.x - B.s / 2 + (col + .5) * c, iy = B.a.y - B.s / 2 + (r + .5) * c;
+      const ox = B.b.x - B.s / 2 + (col + .5) * c, oy = B.b.y - B.s / 2 + (r + .5) * c;
+      if (MAIN[i] > .3) {
+        const q1 = seg(p, .02 + seeds[i].d * .2, .32 + seeds[i].d * .2);
+        if (q1 > 0 && q1 < 1) {
+          const s = c * lerp(1, .25, q1), g = (MAIN[i] * 255) | 0;
+          ctx.fillStyle = `rgba(${g},${g},${Math.min(255, g * .3 + 140)},${1 - seg(q1, .7, 1)})`;
+          ctx.fillRect(lerp(ix, bc.x, ease(q1)) - s / 2, lerp(iy, bc.y, ease(q1)) - s / 2, s, s);
+        }
+      }
+      if (BLUR3[i] > .03) {
+        const q2 = seg(done, seeds[i].d * .35, .65 + seeds[i].d * .35);
+        if (q2 <= 0) continue;
+        const s = c * lerp(.25, 1, q2) + .4, g = (BLUR3[i] * 255) | 0;
+        ctx.fillStyle = `rgba(${g},${g},${g},${seg(q2, 0, .3)})`;
+        ctx.fillRect(lerp(bc.x, ox, ease(q2)) - s / 2, lerp(bc.y, oy, ease(q2)) - s / 2, s, s);
+      }
+    }
+  }
+
+  // "Дякую" in the same pixels as the digits
+  function pixelText(str, cells, weight) {
+    const S = 4, cv2 = document.createElement('canvas'), c2 = cv2.getContext('2d');
+    const font = `${weight} ${cells * S}px "Manrope", sans-serif`;
+    c2.font = font; const w = Math.ceil(c2.measureText(str).width / S) + 2, h = Math.ceil(cells * 1.35);
+    cv2.width = w * S; cv2.height = h * S;
+    c2.font = font; c2.fillStyle = '#fff'; c2.textBaseline = 'middle'; c2.fillText(str, S, h * S / 2);
+    const d = c2.getImageData(0, 0, w * S, h * S).data, out = [];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      let s = 0;
+      for (let b = 0; b < S; b++) for (let a = 0; a < S; a++) s += d[((y * S + b) * w * S + x * S + a) * 4 + 3];
+      const v = s / (S * S * 255); if (v > .08) out.push({ x, y, v: Math.min(1, v * 1.15) });
+    }
+    return { w, h, px: out };
+  }
+  let THX = null;
+  function thanksTargets() {
+    const key = W + 'x' + H;
+    if (THX && THX.key === key) return THX.t;
+    const lines = mobile ? [['Дякую', 20, 800], ['Підготувала', 9, 600], ['Дудченко Крістіна', 9, 600]] : [['Дякую', 22, 800], ['Підготувала Дудченко Крістіна', 9, 600]];
+    const P = lines.map(([s, n, wt]) => pixelText(s, n, wt));
+    const c1 = Math.min(W * .62 / P[0].w, H * .22 / P[0].h);
+    const c2 = Math.min(W * .86 / Math.max(...P.slice(1).map(q => q.w)), c1 * .6);
+    const hs = P.map((q, i) => q.h * (i ? c2 : c1)), total = hs.reduce((a, b) => a + b, 0) + H * .05;
+    let y = H * .46 - total / 2;
+    const t = [];
+    P.forEach((q, i) => {
+      const c = i ? c2 : c1, x0 = W / 2 - q.w * c / 2;
+      q.px.forEach(e => t.push({ x: x0 + (e.x + .5) * c, y: y + (e.y + .5) * c, s: c, v: e.v }));
+      y += hs[i] + (i === 0 ? H * .05 : 0);
+    });
+    THX = { key, t };
+    return t;
+  }
+  function finaleToThanks(p) {
+    const M = archMap(), B = archBoxes(M), c = B.s / N;
+    composite(() => finaleArch({}), 1 - seg(p, 0, .35));
+    drawImg(MAIN, B.a.x, B.a.y, B.s, 0, 1 - seg(p, 0, .3));
+    drawImg(MAIN, B.b.x, B.b.y, B.s, 0, 1 - seg(p, 0, .3));
+    const S = [];
+    for (let i = 0; i < NN; i++) {
+      const r = (i / N) | 0, col = i % N;
+      if (MAIN[i] > .05) S.push({ x: B.a.x - B.s / 2 + (col + .5) * c, y: B.a.y - B.s / 2 + (r + .5) * c, v: MAIN[i], i });
+      if (BLUR3[i] > .05) S.push({ x: B.b.x - B.s / 2 + (col + .5) * c, y: B.b.y - B.s / 2 + (r + .5) * c, v: BLUR3[i], i });
+    }
+    const T = thanksTargets(), q0 = seg(p, .08, .95);
+    T.forEach((t, k) => {
+      const s = S[k % S.length], sd = seeds[(k * 7) % NN];
+      const q = stag(q0, (t.x / W) * .55 + sd.d * .45, .55);
+      const m = Math.sin(q * Math.PI) * 60 * sd.r;
+      const x = lerp(s.x, t.x, q) + Math.cos(sd.a) * m, y = lerp(s.y, t.y, q) + Math.sin(sd.a) * m;
+      const size = lerp(c, t.s, q) * .94, v = lerp(s.v, t.v, q), g = (v * 255) | 0;
+      ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fillRect(x - size / 2, y - size / 2, size, size);
+    });
+    // sources not needed by the text fade away
+    const fa = 1 - seg(p, .05, .4);
+    if (fa > 0 && S.length > T.length) for (let k = T.length; k < S.length; k++) {
+      const s = S[k], g = (s.v * 255) | 0; ctx.fillStyle = `rgba(${g},${g},${g},${fa})`; ctx.fillRect(s.x - c / 2, s.y - c / 2, c, c);
+    }
   }
 
   function frame(now) {
@@ -1866,7 +2056,8 @@
   const playSpan = () => ({ top: playSec.offsetTop, bot: playSec.offsetTop + playSec.offsetHeight });
   const readScroll = () => {
     const y = scrollY, h = innerHeight * UNIT, P = playSpan();
-    const u = y <= P.top ? Math.min(SPLIT, y / h) : y < P.bot ? SPLIT : SPLIT + (y - P.bot) / h;
+    // while the pad fully covers the screen the story jumps to part 2
+    const u = y < P.top ? Math.min(SPLIT, y / h) : SPLIT + 1e-4 + Math.max(0, y - P.bot) / h;
     tTarget = clamp(u, 0, T_END);
   };
   const uToScroll = u => u <= SPLIT ? u * innerHeight * UNIT : playSpan().bot + (u - SPLIT) * innerHeight * UNIT;
@@ -1876,7 +2067,7 @@
     el, at: ANCH[el.dataset.key] ?? +el.dataset.at, span: +el.dataset.span
   }));
   const heroShade = document.getElementById('heroShade');
-  const hint = document.getElementById('hint');
+  const hint = document.getElementById('hint'), credits = document.getElementById('credits');
 
   const rail = document.getElementById('rail');
   const railBtns = STOPS.map((s, i) => {
@@ -1898,6 +2089,8 @@
     }
     heroShade.style.opacity = (1 - raw(t, .5, 1.1)).toFixed(3);
     hint.style.opacity = t > .15 ? 0 : 1;
+    const cr = seg(t, T_END - 1.4, T_END - .8);
+    credits.style.opacity = cr.toFixed(3); credits.style.pointerEvents = cr > .5 ? 'auto' : 'none';
     let k = 0; STOPS.forEach((s, i) => { if (t >= s - .5) k = i; });
     railBtns.forEach((b, i) => b.classList.toggle('on', i === k));
   }
@@ -2254,7 +2447,8 @@
   // ---------- Loop ----------
   function loop(now) {
     const diff = tTarget - tNow;
-    tNow += Math.abs(diff) < 1e-4 ? diff : diff * 0.09;
+    if ((tNow <= SPLIT) !== (tTarget <= SPLIT)) tNow = tTarget;   // no tweening across the pad
+    else tNow += Math.abs(diff) < 1e-4 ? diff : diff * 0.09;
     frame(now);
     requestAnimationFrame(loop);
   }
