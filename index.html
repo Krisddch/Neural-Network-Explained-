@@ -46,7 +46,7 @@
     opacity: 0;
     will-change: transform, opacity, filter;
   }
-  .cap.top { top: 5vh; }
+  .cap.top { top: 8vh; }
   .cap.bottom { bottom: 6vh; }
   .cap .kicker {
     display: inline-block;
@@ -71,8 +71,8 @@
   .cap p {
     margin-top: 10px;
     font-size: clamp(15px, 1.5vw, 19px);
-    font-weight: 300;
-    color: #c9c9c9;
+    font-weight: 400;
+    color: #e2e2e2;
     line-height: 1.5;
   }
   .cap em { font-style: normal; color: var(--yellow); }
@@ -112,7 +112,7 @@
 
   @media (max-width: 700px) {
     .rail { display: none; }
-    .cap.top { top: 3vh; }
+    .cap.top { top: 5vh; }
     .cap.bottom { bottom: 4vh; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -408,24 +408,18 @@
     custom(1.0, () => drawAE(), { ae: .2 });  // straight to the 8–5–3–5–8 autoencoder
     custom(1.4, aeToData, { data: 1.5 });      // big data → a few features
     custom(.7, dataStatic);
-    custom(1.4, dataToPerson, { person: 1.5 });// describe a person with two numbers
-    custom(.6, dataToPersonEnd);
-    custom(1.3, personToPlot, { plot: 1.4 });  // …which is a point on a plane
-    custom(.6, () => personToPlot(1));
-    custom(1.6, plotToArch, { arch: 1.7 });    // that plane is the bottleneck between encoder and decoder
+    custom(1.4, personScene, { person: 1.5 });  // describe Volodymyr…
+    custom(.9, () => personScene(1));
+    custom(1.6, p => squeezeScene(p), { squeeze: 1.7 });  // …the bottleneck keeps only age and height
+    custom(.7, () => squeezeScene(1));
+    custom(1.4, squeezeToArch, { arch: 1.5 });   // encoder → bottleneck → decoder
     custom(2.2, archFlow, { flow: 1.2 });
-    custom(1.4, archToImages, { img: 1.4 });   // images instead of numbers: a 0 goes in…
-    custom(2.0, imgFlow);                      // …and a slightly blurry 0 comes out
-    custom(1.2, imagesToMSE, { mse: 1.3 });    // training: how far apart are the two images?
-    custom(2.6, mseScan);                      // pixel by pixel → mean squared error
-    custom(1.5, mseToLatent, { latent: 1.6 }); // 2 neurons in the bottleneck = a 2-D latent space
-    custom(3.2, latentFill);
-    custom(1.6, latentToArchs, { archs: 1.5 });  // a fully-connected and a convolutional autoencoder
-    custom(.8, () => drawArchs(1));
-    custom(1.6, archsToFinale, { final: 1.6 }); // the 3 from the very beginning…
-    custom(2.4, finaleFlow);                     // …squeezed to its essence and rebuilt
-    custom(2.0, finaleToThanks, { thanks: 2.0 });
-    custom(1.2, () => finaleToThanks(1));
+    custom(1.4, archToImages, { img: 1.4 });     // the 3 from the beginning goes in…
+    custom(2.8, strokeFlow);                     // …three strokes survive the bottleneck, a similar 3 comes out
+    custom(1.2, imagesToMSE, { mse: 1.3 });      // how far apart are the two images?
+    custom(2.6, mseScan);                        // pixel by pixel → mean squared error
+    custom(2.0, mseToThanks, { thanks: 2.0 });
+    custom(1.4, () => mseToThanks(1));
     T_END = u;
   })();
   STOPS = Object.values(ANCH).sort((a, b) => a - b);
@@ -926,6 +920,32 @@
   const ZERO = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.06,0.3,0.61,1,1,0.73,0.61,0.08,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.54,0.94,1,1,1,1,1,1,0.68,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.48,1,1,1,1,0.81,1,1,1,1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.2,0.96,1,1,1,0.52,0,0.59,1,1,1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.2,0.77,1,1,0.92,0.2,0,0,0,0.23,0.95,1,0.88,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.43,1,1,1,0.52,0,0,0,0,0,0.6,1,1,0.67,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.71,1,1,0.78,0,0,0,0,0,0,0,0.88,1,0.87,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.09,0.91,1,1,0.42,0,0,0,0,0,0,0,0.52,1,0.87,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.32,1,1,0.81,0.06,0,0,0,0,0,0,0,0.52,1,0.93,0.11,0,0,0,0,0],[0,0,0,0,0,0,0,0.54,1,1,0.3,0,0,0,0,0,0,0,0,0.52,1,1,0.32,0,0,0,0,0],[0,0,0,0,0,0,0,0.58,1,1,0,0,0,0,0,0,0,0,0,0.52,1,1,0.32,0,0,0,0,0],[0,0,0,0,0,0,0,0.78,1,1,0,0,0,0,0,0,0,0,0,0.52,1,1,0.32,0,0,0,0,0],[0,0,0,0,0,0,0,0.78,1,1,0,0,0,0,0,0,0,0,0,0.52,1,0.98,0.23,0,0,0,0,0],[0,0,0,0,0,0,0,0.79,1,1,0,0,0,0,0,0,0,0,0,0.87,1,0.5,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.22,0.95,1,0.68,0,0,0,0,0,0,0,0,0.96,0.96,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.42,1,1,0.24,0,0,0,0,0,0,0.67,1,0.72,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.15,0.7,1,0.51,0,0,0,0,0,0.31,0.97,0.96,0.18,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.14,0.92,0.99,0.58,0,0,0.18,0.42,0.96,1,0.6,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.1,0.76,0.99,0.87,0.46,0.97,1,1,0.75,0.15,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.24,0.77,1,0.61,0.61,0.25,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
   const ZREC = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.17,0.28,0.32,0.31,0.29,0.18,0.1,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.07,0.32,0.58,0.72,0.8,0.82,0.73,0.46,0.23,0.1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.06,0.39,0.74,0.87,0.89,0.89,0.89,0.85,0.74,0.52,0.25,0.08,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.34,0.72,0.87,0.87,0.8,0.73,0.74,0.76,0.79,0.76,0.54,0.25,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.21,0.63,0.87,0.89,0.78,0.56,0.49,0.47,0.51,0.64,0.8,0.8,0.53,0.08,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.14,0.37,0.77,0.9,0.81,0.52,0.31,0.23,0.19,0.25,0.45,0.73,0.87,0.75,0.29,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.16,0.55,0.91,0.88,0.66,0.28,0.16,0.1,0.09,0.15,0.3,0.58,0.82,0.83,0.48,0.07,0,0,0,0,0],[0,0,0,0,0,0,0,0.24,0.74,0.91,0.8,0.43,0.2,0.07,0.08,0.06,0.08,0.22,0.45,0.7,0.84,0.62,0.14,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.38,0.83,0.92,0.72,0.29,0.12,0.05,0,0,0.06,0.16,0.36,0.59,0.82,0.71,0.27,0,0,0,0,0],[0,0,0,0,0,0,0.08,0.47,0.87,0.9,0.61,0.22,0.08,0,0,0,0,0.09,0.23,0.47,0.76,0.79,0.39,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.55,0.86,0.85,0.48,0.21,0.08,0,0,0,0,0.06,0.17,0.39,0.77,0.83,0.44,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.58,0.85,0.74,0.33,0.1,0,0,0,0,0,0,0.11,0.35,0.76,0.83,0.45,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.52,0.8,0.65,0.21,0.07,0,0,0,0,0,0.05,0.12,0.4,0.8,0.82,0.4,0,0,0,0,0],[0,0,0,0,0,0,0.07,0.48,0.73,0.63,0.23,0.07,0,0,0,0,0,0.06,0.14,0.59,0.83,0.78,0.31,0,0,0,0,0],[0,0,0,0,0,0,0,0.37,0.69,0.59,0.27,0.08,0,0,0,0,0,0.08,0.32,0.72,0.85,0.68,0.17,0,0,0,0,0],[0,0,0,0,0,0,0,0.27,0.69,0.74,0.41,0.12,0,0,0,0,0.06,0.25,0.62,0.83,0.8,0.44,0.08,0,0,0,0,0],[0,0,0,0,0,0,0,0.14,0.63,0.85,0.69,0.3,0.09,0,0.06,0.16,0.3,0.58,0.8,0.82,0.56,0.18,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.08,0.43,0.78,0.79,0.61,0.42,0.35,0.37,0.55,0.77,0.87,0.86,0.65,0.28,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.15,0.55,0.78,0.88,0.92,0.91,0.94,0.95,0.94,0.83,0.58,0.23,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.13,0.37,0.75,0.9,0.91,0.87,0.82,0.69,0.44,0.14,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.14,0.22,0.3,0.31,0.22,0.09,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
   const FOUR = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.7,0.4,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.93,0.53,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.25,1.0,0.54,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.18,0.71,0.14,0,0,0,0,0,0.26,1,0.36,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.41,0.99,0.38,0,0,0,0,0,0.38,0.99,0.26,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.65,0.98,0.25,0,0,0,0,0,0.76,0.93,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.05,0.9,0.68,0,0,0,0,0,0,0.79,0.91,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.25,1,0.49,0,0,0,0,0,0,0.92,0.69,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.5,1,0.22,0,0,0,0,0,0.45,0.97,0.45,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.88,0.93,0.34,0.64,0.72,0.76,1.0,0.99,0.99,0.99,0.49,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.99,0.99,1,0.99,0.85,0.73,0.74,0.73,0.99,1.0,0.98,0.43,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.86,0.95,0.52,0.12,0,0,0,0,0.91,1.0,0.97,0.78,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.07,0.08,0,0,0,0,0,0.1,0.95,0.84,0.23,0.15,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.44,0.99,0.55,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.49,0.99,0.34,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.52,1.0,0.29,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.52,1.0,0.27,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.71,1,0.42,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.76,0.99,0.38,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.55,0.77,0.07,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.14,0.19,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
+  // three strokes that make a 3 a 3 (in 28×28 cell coordinates: [col, row])
+  const STROKES3 = [
+    [[10, 6.5], [15, 5.8], [19, 7.3], [19.4, 10], [17, 12.4], [13.5, 13.5]],
+    [[13.5, 13.8], [17.5, 15.4], [18, 19], [15, 22.4], [10, 23.4], [6.4, 21.4]],
+    [[9, 13.7], [13.5, 13.7]],
+  ];
+  // what the decoder rebuilds from them: a similar, slightly soft 3
+  const REC3 = (() => {
+    const S = 8, cv3 = document.createElement('canvas'); cv3.width = cv3.height = N * S;
+    const c3 = cv3.getContext('2d');
+    c3.strokeStyle = '#fff'; c3.lineCap = c3.lineJoin = 'round'; c3.lineWidth = 2.5 * S;
+    c3.shadowColor = '#fff'; c3.shadowBlur = 1.4 * S;
+    for (const st of STROKES3) {
+      const P = st.map(([x, y]) => ({ x: (x + .5) * S, y: (y + .5) * S }));
+      c3.beginPath(); c3.moveTo(P[0].x, P[0].y);
+      for (let i = 1; i < P.length - 1; i++) c3.quadraticCurveTo(P[i].x, P[i].y, (P[i].x + P[i + 1].x) / 2, (P[i].y + P[i + 1].y) / 2);
+      c3.lineTo(P[P.length - 1].x, P[P.length - 1].y); c3.stroke();
+    }
+    const d = c3.getImageData(0, 0, N * S, N * S).data, o = new Float32Array(NN);
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      let a = 0;
+      for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) a += d[((r * S + y) * N * S + c * S + x) * 4 + 3];
+      o[r * N + c] = Math.min(1, Math.pow(a / (S * S * 255), .8) * .92);
+    }
+    return o;
+  })();
   function shifted(D, dx, dy, gain = 1) {
     const o = new Float32Array(NN);
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
@@ -969,7 +989,7 @@
       const fs = Math.max(13, 52 * k);
       MOFF.forEach(([dx, dy], i) => text(IN4[i], c0.x + dx * k, c0.y + dy * k, fs, 1 - seg(p, 0, .3)));
     });
-    drawImg(ZERO, B.a.x, B.a.y, B.s, seg(p, .45, .9), 0);
+    drawImg(MAIN, B.a.x, B.a.y, B.s, seg(p, .45, .9), 0);
     archImgLabels(M, seg(p, .6, 1));
   }
   function imgFlow(p) {
@@ -1014,22 +1034,23 @@
     const f = 1 - seg(p, 0, .35);
     if (f > 0) { ctx.save(); ctx.globalAlpha = f; drawArch({ inA: 0, outBrA: 0 }); ctx.restore(); archImgLabels(M, f); }
     const q = seg(p, .15, .85);
-    drawImg(ZERO, lerp(B.a.x, G.a.x, q), lerp(B.a.y, G.a.y, q), lerp(B.s, G.s, q), 1);
-    drawImg(ZREC, lerp(B.b.x, G.b.x, q), lerp(B.b.y, G.b.y, q), lerp(B.s, G.s, q), 1);
+    drawImg(MAIN, lerp(B.a.x, G.a.x, q), lerp(B.a.y, G.a.y, q), lerp(B.s, G.s, q), 1);
+    drawImg(REC3, lerp(B.b.x, G.b.x, q), lerp(B.b.y, G.b.y, q), lerp(B.s, G.s, q), 1);
   }
-  const SCAN = (() => { const l = []; for (let i = 0; i < NN; i++) if (Math.max(ZERO[i], ZREC[i]) > .2 && (i % N) % 2 === 0) l.push(i); return l; })();
+  let SCAN_ = null;
+  const getScan = () => SCAN_ || (SCAN_ = (() => { const l = []; for (let i = 0; i < NN; i++) if (Math.max(MAIN[i], REC3[i]) > .2 && (i % N) % 2 === 0) l.push(i); return l; })());
   function mseScan(p) {
     const G = mseGeom();
-    drawImg(ZERO, G.a.x, G.a.y, G.s, 1); drawImg(ZREC, G.b.x, G.b.y, G.s, 1);
+    drawImg(MAIN, G.a.x, G.a.y, G.s, 1); drawImg(REC3, G.b.x, G.b.y, G.s, 1);
     const scanP = clamp(p / .62);
-    const idx = SCAN[Math.min(SCAN.length - 1, Math.floor(scanP * SCAN.length))];
+    const idx = getScan()[Math.min(getScan().length - 1, Math.floor(scanP * getScan().length))];
     const c = G.s / N, r = (idx / N) | 0, col = idx % N;
     const hlA = 1 - seg(p, .6, .7);
     if (hlA > 0) for (const B of [G.a, G.b]) {
       ctx.strokeStyle = `rgba(230,220,78,${hlA})`; ctx.lineWidth = 2;
       ctx.strokeRect(B.x - G.s / 2 + col * c, B.y - G.s / 2 + r * c, c, c);
     }
-    const va = Math.round(ZERO[idx] * 255), vb = Math.round(ZREC[idx] * 255);
+    const va = Math.round(MAIN[idx] * 255), vb = Math.round(REC3[idx] * 255);
     const t1 = 1 - seg(p, .62, .72), t2 = seg(p, .72, .85);
     text(`${va}   −   ${vb}`, W / 2, G.ty, G.fs, seg(p, 0, .08) * t1);
     text('MSE = ¹⁄₇₈₄ Σ (вхід − вихід)²', W / 2, G.ty, G.fs * (mobile ? .8 : .9), t2);
@@ -1159,8 +1180,8 @@
       else x += GAP * k;
     });
   }
-  function drawArchs(p) {
-    const L = archsLayout(), G = aeGeomAt(L.net.cx, L.net.cy, L.net.S);
+  function drawArchs(p, L0) {
+    const L = L0 || archsLayout(), G = aeGeomAt(L.net.cx, L.net.cy, L.net.S);
     const nodes = G.layers.map((layer, l) => layer.map(n => { const a = seg(p, l * .07, .3 + l * .07); return { ...n, r: G.r * backOut(a), a: clamp(a), fill: 0 }; }));
     drawNodesEdges(nodes, .9 * seg(p, .3, .7), Math.max(1, G.S * .06));
     drawConv(L.conv, seg(p, .2, 1));
@@ -1262,10 +1283,10 @@
     if (THX && THX.key === key) return THX.t;
     const lines = mobile ? [['Дякую', 20, 800], ['Підготувала', 9, 600], ['Дудченко Крістіна', 9, 600]] : [['Дякую', 22, 800], ['Підготувала Дудченко Крістіна', 9, 600]];
     const P = lines.map(([s, n, wt]) => pixelText(s, n, wt));
-    const c1 = Math.min(W * .62 / P[0].w, H * .22 / P[0].h);
+    const c1 = Math.min(W * .6 / P[0].w, H * (mobile ? .11 : .14) / P[0].h);
     const c2 = Math.min(W * .86 / Math.max(...P.slice(1).map(q => q.w)), c1 * .6);
     const hs = P.map((q, i) => q.h * (i ? c2 : c1)), total = hs.reduce((a, b) => a + b, 0) + H * .05;
-    let y = H * .46 - total / 2;
+    let y = H * .47 - total / 2;
     const t = [];
     P.forEach((q, i) => {
       const c = i ? c2 : c1, x0 = W / 2 - q.w * c / 2;
@@ -1300,6 +1321,182 @@
     if (fa > 0 && S.length > T.length) for (let k = T.length; k < S.length; k++) {
       const s = S[k], g = (s.v * 255) | 0; ctx.fillStyle = `rgba(${g},${g},${g},${fa})`; ctx.fillRect(s.x - c / 2, s.y - c / 2, c, c);
     }
+  }
+
+
+  // ---------- Part 2c: Volodymyr → Bottleneck → (age, height); the 3 as three strokes; thank-you ----------
+  const ATTR = ["Ім'я: Володимир", 'Вік: 35', 'Професор університету', 'Живе в Києві', 'Ходить у спортзал'];
+  const HEIGHT_TXT = () => mobile ? '1м80' : 'Зріст: 1м80';
+  function personLay() {
+    const fs = mobile ? 13 : Math.max(17, Math.min(34, W * .02));
+    const ph = mobile ? Math.min(H * .28, W * .46) : Math.min(H * .5, W * .28);
+    const cx = W * (mobile ? .64 : .56), top = H * .5 - ph / 2;
+    return { fs, ph, cx, top, lx: cx - ph * (mobile ? .32 : .4), bx: cx + ph * .47 };
+  }
+  const attrPos = (L, i) => ({ x: L.lx, y: L.top + L.ph * .5 + (i - 2) * L.fs * 1.75 });
+  const heightPos = L => ({ x: L.bx + L.ph * .07, y: L.top + L.ph * .5 });
+  function personBrace(L, a) {
+    if (a <= 0) return;
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, L.ph * .006); ctx.lineCap = 'round';
+    drawBrace(L.bx, L.top, L.bx, L.top + L.ph, L.ph * .045, a); ctx.restore();
+  }
+  function personScene(p) {
+    const D = dataGeom(), L = personLay(), fade = 1 - seg(p, 0, .3), lw = Math.max(1.5, D.fs * .06);
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {        // the data pours into the person
+      const i = r * 5 + c, P = D.cell(r, c), q = seg(p, .05 + (i % 7) * .025, .55 + (i % 7) * .025);
+      const tx = L.cx + (seeds[i].d - .5) * L.ph * .3, ty = L.top + L.ph * (.2 + seeds[i * 7 % NN].d * .6);
+      text(String(DATA[r][c]), lerp(P.x, tx, q), lerp(P.y, ty, q), D.fs * lerp(1, .4, q), 1 - seg(q, .5, 1));
+    }
+    if (fade > 0) {
+      bracketPair(D.mcx, D.mcy, 2.5 * D.dx + D.fs * .3, 3 * D.dy, D.fs * .4, fade, lw);
+      text('Дані', D.mcx, D.mcy - 3 * D.dy - D.fs * .85, D.fs * .85, fade);
+      for (let c = 0; c < 5; c++) { const P = D.cell(5, c); text('···', P.x, P.y, D.fs * .8, fade); }
+      bracketPair(D.fx, D.mcy, D.fs * 1.15, 1.55 * D.dy, D.fs * .35, fade, lw);
+      text('Ознаки', D.fx, D.mcy - 1.55 * D.dy - D.fs * .85, D.fs * .85, fade);
+      arrowTo(D.mcx + 2.5 * D.dx + D.fs * 1.3, D.mcy, D.fx - D.fs * 1.9, D.mcy, 1, fade, Math.max(3, D.fs * .14), D.fs * .9);
+      text(String(FEAT[2]), D.feat(2).x, D.feat(2).y, D.fs, fade);
+    }
+    drawPerson(L.cx, L.top, L.ph, seg(p, .3, .75));
+    const q = seg(p, .2, .75), f0 = D.feat(0), f1 = D.feat(1), a1 = attrPos(L, 1), hp = heightPos(L);
+    text(String(FEAT[0]), lerp(f0.x, a1.x, q), lerp(f0.y, a1.y, q), D.fs, 1 - seg(q, .4, .7), 'right');
+    text(ATTR[1], lerp(f0.x, a1.x, q), lerp(f0.y, a1.y, q), lerp(D.fs, L.fs, q), seg(q, .5, .9), 'right');
+    text(String(FEAT[1]), lerp(f1.x, hp.x, q), lerp(f1.y, hp.y, q), D.fs, 1 - seg(q, .4, .7), 'left');
+    text(HEIGHT_TXT(), lerp(f1.x, hp.x, q), lerp(f1.y, hp.y, q), lerp(D.fs, L.fs, q), seg(q, .5, .9), 'left');
+    [0, 2, 3, 4].forEach((i, k) => {
+      const a = seg(p, .5 + k * .08, .78 + k * .08), P = attrPos(L, i);
+      text(ATTR[i], P.x - (1 - a) * 24, P.y, L.fs, a, 'right');
+    });
+    personBrace(L, seg(p, .6, .95));
+  }
+  function squeezeBox() {
+    return mobile ? { x: W / 2, y: H * .6, w: W * .5, h: H * .075 } : { x: W * .6, y: H * .5, w: W * .15, h: H * .11 };
+  }
+  function squeezeOuts() {
+    return mobile ? [{ x: W / 2, y: H * .76 }, { x: W / 2, y: H * .82 }] : [{ x: W * .84, y: H * .45 }, { x: W * .84, y: H * .55 }];
+  }
+  function drawSBox(R, a, glow, fs) {
+    if (glow > 0) { ctx.fillStyle = `rgba(111,183,214,${.28 * glow})`; ctx.fillRect(R.x - R.w / 2, R.y - R.h / 2, R.w, R.h); }
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#6fb7d6'; ctx.lineWidth = Math.max(1.5, fs * .1); ctx.strokeRect(R.x - R.w / 2, R.y - R.h / 2, R.w, R.h); ctx.restore();
+    text('Bottleneck', R.x, R.y, fs, a);
+  }
+  function squeezeScene(p, noBox) {
+    const A = personLay(), R = squeezeBox(), O = squeezeOuts(), m = ease(seg(p, 0, .35));
+    const tcx = mobile ? W * .5 : W * .2, tph = A.ph * (mobile ? .6 : .72), ttop = mobile ? H * .1 : H * .5 - tph / 2;
+    drawPerson(lerp(A.cx, tcx, m), lerp(A.top, ttop, m), lerp(A.ph, tph, m), 1);
+    personBrace(A, 1 - seg(p, 0, .2));
+    const fs = A.fs, glow = Math.sin(Math.PI * seg(p, .45, .72));
+    const ar = seg(p, .3, .5), lw = Math.max(2, fs * .1);
+    if (mobile) {
+      arrowTo(W / 2, ttop + tph + 10, W / 2, R.y - R.h / 2 - 8, ar, 1, lw, fs * .7);
+      arrowTo(W / 2, R.y + R.h / 2 + 8, W / 2, O[0].y - fs * 1.2, seg(p, .55, .7), 1, lw, fs * .7);
+    } else {
+      arrowTo(W * .32, H * .5, R.x - R.w / 2 - 14, H * .5, ar, 1, lw, fs * .7);
+      arrowTo(R.x + R.w / 2 + 14, H * .5, W * .76, H * .5, seg(p, .55, .7), 1, lw, fs * .7);
+    }
+    if (!noBox) drawSBox(R, seg(p, .1, .35), glow, fs);
+    // everything we know about Volodymyr goes in…
+    const items = ATTR.map((s, i) => ({ s, P: attrPos(A, i), al: 'right' })).concat([{ s: HEIGHT_TXT(), P: heightPos(A), al: 'left' }]);
+    items.forEach((it, k) => {
+      const q = seg(p, .25 + k * .04, .55 + k * .04);
+      text(it.s, lerp(it.P.x, R.x, ease(q)), lerp(it.P.y, R.y, ease(q)), fs * lerp(1, .45, q), 1 - seg(q, .7, 1), q > .5 ? 'center' : it.al);
+    });
+    // …only age and height come out
+    ['Вік: 35', 'Зріст: 1м80'].forEach((s, k) => {
+      const q = seg(p, .62 + k * .05, .9 + k * .05);
+      text(s, lerp(R.x, O[k].x, ease(q)), lerp(R.y, O[k].y, ease(q)), fs * lerp(.45, 1.15, q), seg(q, 0, .3));
+    });
+  }
+  function squeezeToArch(p) {
+    composite(() => squeezeScene(1, true), 1 - seg(p, 0, .35));
+    const R = squeezeBox(), M = archMap(), a = M.P(870, 125), b = M.P(1122, 228);
+    const T = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, w: Math.abs(b.x - a.x), h: Math.abs(b.y - a.y) };
+    const c = ease(seg(p, .1, .5)), fsA = personLay().fs, fsB = Math.max(11, 36 * M.k);
+    drawArch({ unfold: seg(p, .45, .85), boxA: 0, labA: seg(p, .7, .95), boxLabA: 0, arrowP: seg(p, .65, .95), inA: seg(p, .7, 1), outBrA: 0, outValA: 0 });
+    drawSBox({ x: lerp(R.x, T.x, c), y: lerp(R.y, T.y, c), w: lerp(R.w, T.w, c), h: lerp(R.h, T.h, c) }, 1, 0, lerp(fsA, fsB, c));
+  }
+
+  // the 3 → three characteristic strokes → a similar 3
+  function strokePath(pts, map) {
+    const P = pts.map(([x, y]) => map(x + .5, y + .5));
+    ctx.beginPath(); ctx.moveTo(P[0].x, P[0].y);
+    for (let i = 1; i < P.length - 1; i++) ctx.quadraticCurveTo(P[i].x, P[i].y, (P[i].x + P[i + 1].x) / 2, (P[i].y + P[i + 1].y) / 2);
+    ctx.lineTo(P[P.length - 1].x, P[P.length - 1].y);
+    let len = 0; for (let i = 1; i < P.length; i++) len += Math.hypot(P[i].x - P[i - 1].x, P[i].y - P[i - 1].y);
+    return len * 1.08;
+  }
+  function drawStrokes(cx, cy, size, a, prog = 1, col = '230,220,78', glow = 0) {
+    if (a <= 0) return;
+    const k = size / N, map = (x, y) => ({ x: cx + (x - 14) * k, y: cy + (y - 14) * k });
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = `rgb(${col})`; ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(2, k * 1.15);
+    if (glow > 0) { ctx.shadowColor = `rgba(${col},.9)`; ctx.shadowBlur = 16 * glow; }
+    STROKES3.forEach((s, i) => {
+      const pr = clamp(prog * 3 - i);
+      if (pr <= 0) return;
+      const len = strokePath(s, map);
+      ctx.setLineDash([len * pr, len * 2]); ctx.stroke();
+    });
+    ctx.restore();
+  }
+  function strokeFlow(p) {
+    const M = archMap(), B = archBoxes(M), bc = M.P(996, 177), c = B.s / N;
+    const ba = M.P(870, 125), bb = M.P(1122, 228), bs = Math.min(Math.abs(bb.x - ba.x), Math.abs(bb.y - ba.y)) * .82;
+    const glow = Math.sin(Math.PI * seg(p, .42, .66));
+    drawArch({ inA: 0, outBrA: 0, glow });
+    drawImg(MAIN, B.a.x, B.a.y, B.s, 1);
+    drawImg(REC3, B.b.x, B.b.y, B.s, 0, 1);
+    archImgLabels(M, 1);
+    // the rest of the pixels: thrown away on the way in
+    for (let i = 0; i < NN; i++) {
+      if (MAIN[i] <= .3) continue;
+      const q = seg(p, .28 + seeds[i].d * .12, .5 + seeds[i].d * .12);
+      if (q <= 0 || q >= 1) continue;
+      const r = (i / N) | 0, col = i % N, s = c * lerp(1, .3, q), g = (MAIN[i] * 200) | 0;
+      const x = lerp(B.a.x - B.s / 2 + (col + .5) * c, bc.x, ease(q) * .7), y = lerp(B.a.y - B.s / 2 + (r + .5) * c, bc.y, ease(q) * .7) + Math.sin(q * Math.PI) * 30 * seeds[i].r;
+      ctx.fillStyle = `rgba(${g},${g},${g},${.8 * (1 - q)})`; ctx.fillRect(x - s / 2, y - s / 2, s, s);
+    }
+    // the three strokes are traced over the 3, squeezed into the bottleneck…
+    const t1 = seg(p, .28, .48), t2 = seg(p, .64, .82);
+    const pos = t2 > 0 ? { x: lerp(bc.x, B.b.x, ease(t2)), y: lerp(bc.y, B.b.y, ease(t2)), s: lerp(bs, B.s, ease(t2)) }
+                       : { x: lerp(B.a.x, bc.x, ease(t1)), y: lerp(B.a.y, bc.y, ease(t1)), s: lerp(B.s, bs, ease(t1)) };
+    const strokesA = 1 - seg(p, .86, 1);
+    drawStrokes(pos.x, pos.y, pos.s, strokesA, t1 > 0 ? 1 : seg(p, .04, .26), '230,220,78', Math.max(glow, t1 > 0 && t2 < 1 ? .5 : 0));
+    // …and the decoder builds a similar 3 around them
+    const built = seg(p, .78, .98);
+    for (let i = 0; built > 0 && i < NN; i++) {
+      if (REC3[i] <= .03) continue;
+      const k = seg(built, seeds[i].d * .4, .6 + seeds[i].d * .4); if (k <= 0) continue;
+      const r = (i / N) | 0, col = i % N, g = (REC3[i] * 255) | 0;
+      ctx.fillStyle = `rgba(${g},${g},${g},${k})`;
+      ctx.fillRect(B.b.x - B.s / 2 + col * c, B.b.y - B.s / 2 + r * c, c + .4, c + .4);
+    }
+  }
+  const thanksArchs = () => mobile
+    ? { net: { cx: W / 2, cy: H * .15, S: Math.min(W * .05, H * .024) }, conv: { cx: W / 2, cy: H * .79, w: W * .88 } }
+    : { net: { cx: W / 2, cy: H * .15, S: Math.min(H * .028, W * .035) }, conv: { cx: W / 2, cy: H * .8, w: Math.min(W * .5, H * .8) } };
+  function mseToThanks(p) {
+    const G = mseGeom(), c = G.s / N;
+    text('MSE = ¹⁄₇₈₄ Σ (вхід − вихід)²', W / 2, G.ty, G.fs * (mobile ? .8 : .9), 1 - seg(p, 0, .25));
+    const fr = 1 - seg(p, 0, .3);
+    drawImg(MAIN, G.a.x, G.a.y, G.s, 0, fr); drawImg(REC3, G.b.x, G.b.y, G.s, 0, fr);
+    const S = [];
+    for (let i = 0; i < NN; i++) {
+      const r = (i / N) | 0, col = i % N;
+      if (MAIN[i] > .05) S.push({ x: G.a.x - G.s / 2 + (col + .5) * c, y: G.a.y - G.s / 2 + (r + .5) * c, v: MAIN[i] });
+      if (REC3[i] > .05) S.push({ x: G.b.x - G.s / 2 + (col + .5) * c, y: G.b.y - G.s / 2 + (r + .5) * c, v: REC3[i] });
+    }
+    const T = thanksTargets(), q0 = seg(p, .05, .85);
+    T.forEach((t, k) => {
+      const s = S[k % S.length], sd = seeds[(k * 7) % NN];
+      const q = stag(q0, (t.x / W) * .55 + sd.d * .45, .55);
+      const m = Math.sin(q * Math.PI) * 60 * sd.r;
+      const x = lerp(s.x, t.x, q) + Math.cos(sd.a) * m, y = lerp(s.y, t.y, q) + Math.sin(sd.a) * m;
+      const size = lerp(c, t.s, q) * .94, g = (lerp(s.v, t.v, q) * 255) | 0;
+      ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fillRect(x - size / 2, y - size / 2, size, size);
+    });
+    const fa = 1 - seg(p, .05, .4);
+    if (fa > 0) for (let k = T.length; k < S.length; k++) { const s = S[k], g = (s.v * 255) | 0; ctx.fillStyle = `rgba(${g},${g},${g},${fa})`; ctx.fillRect(s.x - c / 2, s.y - c / 2, c, c); }
+    if (p > .4) drawArchs(seg(p, .4, 1), thanksArchs());
   }
 
   function frame(now) {
@@ -2081,11 +2278,12 @@
     for (const c of caps) {
       let d = (t - c.at) / c.span;
       if (c.el.dataset.hold && d > 0) d = 0;
-      const o = clamp(1.25 - Math.abs(d) * 1.25);
-      const y = -d * 70;
+      const o = d < 0 ? clamp((1 + d) / .3) : clamp((1 - d) / .16);
+      const y = -d * 26;
       c.el.style.opacity = easeOut(o).toFixed(3);
       c.el.style.transform = `translate(-50%, ${y.toFixed(1)}px)`;
-      c.el.style.filter = o < 1 ? `blur(${((1 - o) * 6).toFixed(1)}px)` : 'none';
+      const bl = d < 0 ? (1 - o) * 2.5 : (1 - o) * 3;
+      c.el.style.filter = bl > .05 ? `blur(${bl.toFixed(1)}px)` : 'none';
     }
     heroShade.style.opacity = (1 - raw(t, .5, 1.1)).toFixed(3);
     hint.style.opacity = t > .15 ? 0 : 1;
