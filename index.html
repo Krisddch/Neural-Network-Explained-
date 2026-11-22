@@ -387,13 +387,18 @@
     old([[0, 35.2], [1.0, 35.2]], p => ({ fill: actFill(1, .8 * seg(p, .2, .9), 0), ye: [1, seg(p, .1, .7), 0], yeA: [1 - seg(p, 0, .2), 1, 1] }), { p2: .7 });
     old([[0, 35.2], [1.0, 35.2]], p => ({ fill: actFill(1, lerp(.8, 1, seg(p, 0, .5)), 0), ye: [0, 1, seg(p, .1, .7)], yeA: [0, 1 - seg(p, 0, .2), 1] }), { p3: .7 });
     // 29  another digit: the brightest output neuron is the answer
-    old([[0, 35.2], [1.6, 35.2], [.7, 35.2]], p => {
-      const m = seg(p, .2, .7);
-      const box = new Float32Array(NN);
-      const b = seg(p, .15, .6);
-      for (let i = 0; i < NN; i++) box[i] = lerp(NINE[i], SIX[i], stag(b, seeds[i].d, .5));
-      return { fill: actFill(1, 1, m), ye: [0, 0, 1], yeA: [0, 0, 1 - seg(p, 0, .2)], hAmul: 1 - seg(p, 0, .3), boxDigit: box, hl6: seg(p, .6, .8) };
-    }, { six: 1.9 });
+    old([[0, 35.2], [1.6, 35.2], [.7, 35.2]], sixOV, { six: 1.9 });
+    // ---- Part 2: autoencoders ----
+    custom(1.5, bridgeAE, { ae: 1.5 });        // the network reshapes into an 8–5–3–5–8 autoencoder
+    custom(.8, () => drawAE());
+    custom(1.4, aeToData, { data: 1.5 });      // big data → a few features
+    custom(.7, dataStatic);
+    custom(1.4, dataToPerson, { person: 1.5 });// describe a person with two numbers
+    custom(.6, dataToPersonEnd);
+    custom(1.3, personToPlot, { plot: 1.4 });  // …which is a point on a plane
+    custom(.6, () => personToPlot(1));
+    custom(1.6, plotToArch, { arch: 1.7 });    // that plane is the bottleneck between encoder and decoder
+    custom(2.2, archFlow, { flow: 1.2 });
     T_END = u;
   })();
   STOPS = Object.values(ANCH).sort((a, b) => a - b);
@@ -548,6 +553,350 @@
     ctx.globalAlpha = 1;
     const B = big784(), fs0 = mobile ? 30 : Math.max(28, Math.min(72, W * .04)), e = ease(p);
     drawDigitGlyph('784', lerp(mobile ? W * .85 : W * .87, B.x, e), lerp(H * (mobile ? .17 : .2), B.y, e), lerp(fs0, B.fs, e), 1);
+  }
+
+
+  // =====================================================================
+  // Part 2 — autoencoders: encoder → bottleneck (latent space) → decoder
+  // =====================================================================
+  function sixOV(p) {
+    const m = seg(p, .2, .7);
+    const box = new Float32Array(NN);
+    const b = seg(p, .15, .6);
+    for (let i = 0; i < NN; i++) box[i] = lerp(NINE[i], SIX[i], stag(b, seeds[i].d, .5));
+    return { fill: actFill(1, 1, m), ye: [0, 0, 1], yeA: [0, 0, 1 - seg(p, 0, .2)], hAmul: 1 - seg(p, 0, .3), boxDigit: box, hl6: seg(p, .6, .8) };
+  }
+  const DATA = [[66, 68, 97, 67, 79], [66, 27, 89, 29, 24], [37, 92, 44, 60, 54], [29, 53, 87, 74, 17], [34, 2, 6, 99, 63]];
+  const FEAT = [10, 22, 34];
+  const PURPLE = '168,138,192';
+  const IN4 = ['0.11', '0.78', '0.45', '0.52'];
+
+  // the 8–5–3–5–8 autoencoder network
+  function aeGeom() {
+    const S = mobile ? Math.min(H * .06, W * .072) : Math.min(H * .095, W * .068);
+    const cx = W / 2, cy = H * .5, xo = [-6.28, -2.5, 0, 2.5, 6.28], n = [8, 5, 3, 5, 8];
+    const layers = n.map((k, l) => Array.from({ length: k }, (_, i) => ({ x: cx + xo[l] * S, y: cy + (i - (k - 1) / 2) * S })));
+    return { layers, r: S * .25, S };
+  }
+  function drawNodesEdges(L, edgeA, lw) {
+    if (edgeA > 0) {
+      ctx.lineWidth = lw;
+      for (let l = 0; l < L.length - 1; l++) for (const a of L[l]) for (const b of L[l + 1]) {
+        const al = edgeA * Math.min(a.a, b.a);
+        if (al <= .01) continue;
+        ctx.strokeStyle = `rgba(245,245,245,${al})`;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+    }
+    for (const layer of L) for (const n of layer) ringNode(n.x, n.y, n.r, n.fill || 0, n.a);
+  }
+  function aeNodes() {
+    const G = aeGeom();
+    return { G, L: G.layers.map(layer => layer.map(n => ({ ...n, r: G.r, a: 1, fill: 0 }))) };
+  }
+  const drawAE = () => { const { G, L } = aeNodes(); drawNodesEdges(L, .9, Math.max(1.2, G.S * .018)); };
+
+  function arrowTo(x1, y1, x2, y2, p, a, lw, head, col = '255,255,255') {
+    if (p <= 0 || a <= 0) return;
+    const ang = Math.atan2(y2 - y1, x2 - x1), xe = lerp(x1, x2, p), ye = lerp(y1, y2, p);
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = ctx.fillStyle = `rgb(${col})`; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(xe - Math.cos(ang) * head * .7, ye - Math.sin(ang) * head * .7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(xe, ye);
+    ctx.lineTo(xe - Math.cos(ang) * head + Math.sin(ang) * head * .5, ye - Math.sin(ang) * head - Math.cos(ang) * head * .5);
+    ctx.lineTo(xe - Math.cos(ang) * head - Math.sin(ang) * head * .5, ye - Math.sin(ang) * head + Math.cos(ang) * head * .5);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function bracketPair(cx, cy, hw, hh, tick, a, lw) {
+    if (a <= 0) return;
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = lw;
+    for (const d of [-1, 1]) {
+      const x = cx + d * hw;
+      ctx.beginPath(); ctx.moveTo(x - d * tick, cy - hh); ctx.lineTo(x, cy - hh); ctx.lineTo(x, cy + hh); ctx.lineTo(x - d * tick, cy + hh); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function textW(str, fs) { ctx.font = `${fs}px "STIX Two Text", "Times New Roman", serif`; return ctx.measureText(str).width; }
+  function text(str, x, y, fs, a, align = 'center', style = '', col = '#fff') {
+    if (a <= 0) return;
+    ctx.globalAlpha = a; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = 'middle';
+    ctx.font = `${style}${fs}px "STIX Two Text", "Times New Roman", serif`;
+    ctx.fillText(str, x, y); ctx.globalAlpha = 1;
+  }
+
+  // "Data → Features"
+  function dataGeom() {
+    const fs = mobile ? W * .04 : Math.min(W * .032, H * .058);
+    const dx = fs * (mobile ? 2.3 : 2.65), dy = fs * 1.65;
+    const mcx = W * (mobile ? .36 : .27), mcy = H * .52, fx = W * (mobile ? .86 : .835);
+    return {
+      fs, dx, dy, mcx, mcy, fx,
+      cell: (r, c) => ({ x: mcx + (c - 2) * dx, y: mcy + (r - 2.5) * dy }),
+      feat: k => ({ x: fx, y: mcy + (k - 1) * dy }),
+    };
+  }
+  function drawDataStatic(D, a, featA, opts = {}) {
+    const lw = Math.max(1.5, D.fs * .06);
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+      if (opts.skip && opts.skip(r, c)) continue;
+      const P = D.cell(r, c); text(String(DATA[r][c]), P.x, P.y, D.fs, a * (opts.cellA ? opts.cellA(r, c) : 1));
+    }
+    for (let c = 0; c < 5; c++) { const P = D.cell(5, c); text('···', P.x, P.y, D.fs * .8, a); }
+    bracketPair(D.mcx, D.mcy, 2.5 * D.dx + D.fs * .3, 3 * D.dy, D.fs * .4, a, lw);
+    text('Дані', D.mcx, D.mcy - 3 * D.dy - D.fs * .85, D.fs * .85, a);
+    if (!opts.noFeat) for (let k = 0; k < 3; k++) { const P = D.feat(k); text(String(FEAT[k]), P.x, P.y, D.fs, featA); }
+    bracketPair(D.fx, D.mcy, D.fs * 1.15, 1.55 * D.dy, D.fs * .35, featA, lw);
+    text('Ознаки', D.fx, D.mcy - 1.55 * D.dy - D.fs * .85, D.fs * .85, featA);
+    const x1 = D.mcx + 2.5 * D.dx + D.fs * 1.3, x2 = D.fx - D.fs * 1.9;
+    arrowTo(x1, D.mcy, x2, D.mcy, opts.arrowP ?? 1, featA, Math.max(3, D.fs * .14), D.fs * .9);
+  }
+
+  // person: unit figure, height 1, origin at the top centre of the head
+  function drawPerson(cx, top, ph, a) {
+    if (a <= 0) return;
+    const X = u => cx + u * ph, Y = v => top + v * ph;
+    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff';
+    ctx.beginPath(); ctx.arc(X(0), Y(.085), .083 * ph, 0, Math.PI * 2); ctx.fill();
+    const rr = (x, y, w, h, r) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(X(x), Y(y), w * ph, h * ph, r * ph); else ctx.rect(X(x), Y(y), w * ph, h * ph); ctx.fill(); };
+    rr(-.205, .187, .317, .4, .06);
+    rr(-.112, .5, .108, .5, .054); rr(.004, .5, .108, .5, .054);
+    ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = .075 * ph;
+    ctx.beginPath(); ctx.moveTo(X(.075), Y(.23)); ctx.lineTo(X(.225), Y(.37)); ctx.lineTo(X(.37), Y(.22)); ctx.stroke();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = .014 * ph; ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.moveTo(X(-.13), Y(.3)); ctx.lineTo(X(-.13), Y(.6)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(-.004), Y(.6)); ctx.lineTo(X(-.004), Y(1)); ctx.stroke();
+    ctx.restore();
+  }
+  function personGeom(which) {
+    const ph = mobile ? Math.min(H * .3, W * .5) : Math.min(H * .5, W * .3);
+    const fs = mobile ? 18 : Math.max(20, Math.min(46, W * .026));
+    if (which === 40) return { cx: W * (mobile ? .47 : .45), top: H * .5 - ph / 2, ph, fs };
+    return { cx: W * (mobile ? .2 : .29), top: H * .5 - ph / 2, ph: ph * (mobile ? .6 : .95), fs };
+  }
+  function plotGeom() {
+    return mobile
+      ? { ox: W * .42, oy: H * .62, xe: W * .93, yt: H * .36, fs: 18 }
+      : { ox: W * .51, oy: H * .74, xe: W * .76, yt: H * .22, fs: Math.max(22, Math.min(54, W * .03)) };
+  }
+  const plotPoint = G => ({ x: G.ox + (G.xe - G.ox) * .25, y: G.oy - (G.oy - G.yt) * .8 });
+
+  // encoder → bottleneck → decoder, laid out in the reference frame's own coordinates (2000 × 354)
+  function archMap() {
+    if (!mobile) { const k = Math.min(W * .96 / 2000, H * .55 / 354); return { k, P: (ix, iy) => ({ x: W / 2 + (ix - 1000) * k, y: H * .5 + (iy - 177) * k }) }; }
+    const k = Math.min(H * .86 / 2000, W * .9 / 380), kp = Math.min(W * .9 / 380, k * 2.2);   // stacked vertically on phones
+    return { k, P: (ix, iy) => ({ x: W / 2 + (iy - 177) * kp, y: H / 2 + (ix - 1000) * k }) };
+  }
+  const ENC = [[565, 48], [820, 125], [820, 228], [565, 305]];
+  const DEC = [[1172, 125], [1427, 48], [1427, 305], [1172, 228]];
+  function poly(M, pts, col, a, lw) {
+    if (a <= 0) return;
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = `rgb(${col})`; ctx.lineWidth = lw; ctx.lineJoin = 'miter';
+    ctx.beginPath(); pts.forEach(([ix, iy], i) => { const q = M.P(ix, iy); i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); }); ctx.closePath(); ctx.stroke();
+    ctx.restore();
+  }
+  const MOFF = [[-73, -45], [73, -45], [-73, 45], [73, 45]];
+  function matrix2(M, icx, a, vals = IN4, entryA = null) {
+    if (a <= 0) return;
+    const c = M.P(icx, 177), k = M.k, fs = Math.max(13, 52 * k);
+    bracketPair(c.x, c.y, 163 * k, 92 * k, 14 * k, a, Math.max(1.5, 4 * k));
+    MOFF.forEach(([dx, dy], i) => text(vals[i], c.x + dx * k, c.y + dy * k, fs, a * (entryA ? entryA(i) : 1)));
+  }
+  function boxLabel(c, fs, a) {
+    if (mobile) { text('Вузьке', c.x, c.y - fs * .6, fs, a); text('місце', c.x, c.y + fs * .6, fs, a); }
+    else text('Вузьке місце', c.x, c.y, fs, a);
+  }
+  function drawArch(o) {
+    const M = archMap(), k = M.k, lw = Math.max(1.5, 4 * k), fs = Math.max(11, 36 * k);
+    // encoder / decoder unfold from the bottleneck
+    const u = o.unfold ?? 1;
+    const enc = ENC.map(([x, y], i) => i === 0 || i === 3 ? [lerp(820, x, u), lerp(i === 0 ? 125 : 228, y, u)] : [x, y]);
+    const dec = DEC.map(([x, y], i) => i === 1 || i === 2 ? [lerp(1172, x, u), lerp(i === 1 ? 125 : 228, y, u)] : [x, y]);
+    poly(M, enc, PURPLE, (o.encA ?? 1) * Math.min(1, u * 3), lw);
+    poly(M, dec, PURPLE, (o.encA ?? 1) * Math.min(1, u * 3), lw);
+    const ec = M.P(692, 177), dc = M.P(1300, 177), bc = M.P(996, 177);
+    text('Енкодер', ec.x, ec.y, fs, o.labA ?? 1);
+    text('Декодер', dc.x, dc.y, fs, o.labA ?? 1);
+    if ((o.boxA ?? 1) > 0) {
+      const a = M.P(870, 125), b = M.P(1122, 228);
+      const x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
+      if (o.glow > 0) { ctx.fillStyle = `rgba(111,183,214,${.28 * o.glow})`; ctx.fillRect(x0, y0, w, h); }
+      ctx.save(); ctx.globalAlpha = o.boxA ?? 1; ctx.strokeStyle = '#6fb7d6'; ctx.lineWidth = lw; ctx.strokeRect(x0, y0, w, h); ctx.restore();
+      boxLabel(bc, fs, o.boxLabA ?? 1);
+    }
+    const a1 = M.P(383, 177), a2 = M.P(535, 177), b1 = M.P(1455, 177), b2 = M.P(1608, 177);
+    arrowTo(a1.x, a1.y, a2.x, a2.y, o.arrowP ?? 1, 1, Math.max(3, 9 * k), 26 * k);
+    arrowTo(b1.x, b1.y, b2.x, b2.y, o.arrowP ?? 1, 1, Math.max(3, 9 * k), 26 * k);
+    matrix2(M, 190, o.inA ?? 1);
+    matrix2(M, 1802, o.outBrA ?? 1, IN4, () => o.outValA ?? 1);
+  }
+
+  // ---------- scenes ----------
+  function bridgeAE(p, now) {
+    const a = 1 - seg(p, 0, .4);
+    if (a > 0) {
+      offCtx.clearRect(0, 0, W, H);
+      ctx = offCtx; OV = sixOV(1); renderOld(35.2, now); ctx = mainCtx; OV = {};
+      ctx.globalAlpha = a; ctx.drawImage(off, 0, 0, W, H); ctx.globalAlpha = 1;
+    }
+    const C = netC(), { G, L } = aeNodes(), src = [0, 1, 2, 3, 3];
+    const F = actFill(1, 1, 1);
+    const nodes = L.map((layer, l) => layer.map((n, j) => {
+      const cl = C.layers[src[l]], si = Math.round(j * (cl.length - 1) / (layer.length - 1)), s = cl[si];
+      const q = seg(p, .1 + l * .06, .62 + l * .06);
+      const f0 = l === 0 ? 0 : l <= 2 ? F(l, si, 0) : (si === 6 ? 1 : 0);
+      return { x: lerp(s.x, n.x, q), y: lerp(s.y, n.y, q), r: lerp(C.r, G.r, q), fill: f0 * (1 - q), a: l === 4 ? seg(p, .12, .4) : 1 };
+    }));
+    drawNodesEdges(nodes, .9 * seg(p, .55, 1), Math.max(1.2, G.S * .018));
+  }
+  function aeToData(p) {
+    const { G, L } = aeNodes(), D = dataGeom();
+    drawNodesEdges([], 0, 1);
+    // edges + the decoder half fade away
+    const ea = .9 * (1 - seg(p, 0, .35));
+    const fadeR = 1 - seg(p, 0, .4);
+    const keep = L.map((layer, l) => layer.map(n => ({ ...n, a: l >= 3 ? fadeR : 1 })));
+    if (ea > 0) drawNodesEdges(keep.map(layer => layer.map(n => ({ ...n, r: 0 }))), ea, Math.max(1.2, G.S * .018));
+    for (let l = 3; l < 5; l++) keep[l].forEach(n => ringNode(n.x, n.y, n.r, 0, n.a));
+    // encoder neurons become the data, bottleneck neurons become the features
+    const movers = [...L[0], ...L[1]];
+    movers.forEach((n, i) => {
+      const r = (i / 5) | 0, c = i % 5, T = D.cell(r, c);
+      const q = seg(p, .1 + i * .02, .55 + i * .02);
+      const x = lerp(n.x, T.x, q), y = lerp(n.y, T.y, q) - Math.sin(q * Math.PI) * 30;
+      ringNode(x, y, G.r * (1 - seg(q, .55, 1)), 0, 1);
+      text(String(DATA[r][c]), T.x, T.y, D.fs, seg(q, .6, 1));
+    });
+    L[2].forEach((n, k) => {
+      const T = D.feat(k), q = seg(p, .25 + k * .05, .7 + k * .05);
+      ringNode(lerp(n.x, T.x, q), lerp(n.y, T.y, q), G.r * (1 - seg(q, .55, 1)), 0, 1);
+      text(String(FEAT[k]), T.x, T.y, D.fs, seg(q, .6, 1));
+    });
+    const rest = seg(p, .5, .95);
+    drawDataStatic(D, rest, seg(p, .6, 1), {
+      skip: (r, c) => r * 5 + c < 13, noFeat: true, arrowP: seg(p, .65, 1),
+      cellA: (r, c) => clamp(rest * 2 - (r * 5 + c - 13) / 12),
+    });
+    // keep matrix brackets/labels in sync for the moved cells (they were drawn by the movers)
+  }
+  function dataStatic() { drawDataStatic(dataGeom(), 1, 1); }
+  function dataToPerson(p) {
+    const D = dataGeom(), S = personGeom(40);
+    const fade = 1 - seg(p, 0, .3);
+    // matrix numbers pour into the figure
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+      const i = r * 5 + c, P = D.cell(r, c), q = seg(p, .05 + (i % 7) * .025, .55 + (i % 7) * .025);
+      const tx = S.cx + (seeds[i].d - .5) * S.ph * .3, ty = S.top + S.ph * (.2 + seeds[i * 7 % NN].d * .6);
+      text(String(DATA[r][c]), lerp(P.x, tx, q), lerp(P.y, ty, q), D.fs * lerp(1, .4, q), 1 - seg(q, .5, 1));
+    }
+    bracketPair(D.mcx, D.mcy, 2.5 * D.dx + D.fs * .3, 3 * D.dy, D.fs * .4, fade, Math.max(1.5, D.fs * .06));
+    text('Дані', D.mcx, D.mcy - 3 * D.dy - D.fs * .85, D.fs * .85, fade);
+    for (let c = 0; c < 5; c++) { const P = D.cell(5, c); text('···', P.x, P.y, D.fs * .8, fade); }
+    const sc = lerp(.85, 1, seg(p, .3, .8)), ph = S.ph * sc;
+    drawPerson(S.cx, S.top + (S.ph - ph) / 2, ph, seg(p, .3, .75));
+    // two of the features become "age" and "height"
+    const ageP = { x: S.cx - S.ph * .36, y: S.top + S.ph * .5 }, bx = S.cx + S.ph * .47, hP = { x: bx + S.ph * .26, y: S.top + S.ph * .5 };
+    const f0 = D.feat(0), f1 = D.feat(1), f2 = D.feat(2), q = seg(p, .2, .75);
+    text(String(FEAT[0]), lerp(f0.x, ageP.x, q), lerp(f0.y, ageP.y, q), D.fs, 1 - seg(q, .4, .7), 'right');
+    text('Вік: 25', lerp(f0.x, ageP.x, q), lerp(f0.y, ageP.y, q), lerp(D.fs, S.fs, q), seg(q, .5, .9), 'right');
+    text(String(FEAT[1]), lerp(f1.x, hP.x, q), lerp(f1.y, hP.y, q), D.fs, 1 - seg(q, .4, .7), 'left');
+    text('1м80', lerp(f1.x, hP.x, q), lerp(f1.y, hP.y, q), lerp(D.fs, S.fs, q), seg(q, .5, .9), 'left');
+    text(String(FEAT[2]), f2.x, f2.y, D.fs, fade);
+    bracketPair(D.fx, D.mcy, D.fs * 1.15, 1.55 * D.dy, D.fs * .35, fade, Math.max(1.5, D.fs * .06));
+    text('Ознаки', D.fx, D.mcy - 1.55 * D.dy - D.fs * .85, D.fs * .85, fade);
+    arrowTo(D.mcx + 2.5 * D.dx + D.fs * 1.3, D.mcy, D.fx - D.fs * 1.9, D.mcy, 1, fade, Math.max(3, D.fs * .14), D.fs * .9);
+    // height brace
+    const ba = seg(p, .6, .95);
+    if (ba > 0) {
+      ctx.save(); ctx.globalAlpha = ba; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, S.ph * .006); ctx.lineCap = 'round';
+      drawBrace(bx, S.top, bx, S.top + S.ph, S.ph * .045, ba); ctx.restore();
+    }
+  }
+  function personStatic() { dataToPersonEnd(); }
+  function dataToPersonEnd() {
+    const S = personGeom(40), bx = S.cx + S.ph * .47;
+    drawPerson(S.cx, S.top, S.ph, 1);
+    text('Вік: 25', S.cx - S.ph * .36, S.top + S.ph * .5, S.fs, 1, 'right');
+    text('1м80', bx + S.ph * .26, S.top + S.ph * .5, S.fs, 1, 'left');
+    ctx.save(); ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, S.ph * .006); ctx.lineCap = 'round';
+    drawBrace(bx, S.top, bx, S.top + S.ph, S.ph * .045, 1); ctx.restore();
+  }
+  function personToPlot(p) {
+    const A = personGeom(40), B = personGeom(41), G = plotGeom(), pt = plotPoint(G);
+    const m = ease(clamp(p / .7));
+    const cx = lerp(A.cx, B.cx, m), ph = lerp(A.ph, B.ph, m), top = H * .5 - ph / 2;
+    drawPerson(cx, top, ph, 1);
+    const bx = A.cx + A.ph * .47, bf = 1 - seg(p, 0, .3);
+    if (bf > 0) { ctx.save(); ctx.globalAlpha = bf; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, A.ph * .006); ctx.lineCap = 'round'; drawBrace(bx, A.top, bx, A.top + A.ph, A.ph * .045, 1); ctx.restore(); }
+    // axes
+    const lw = Math.max(2, G.fs * .07), hd = G.fs * .55;
+    arrowTo(G.ox, G.oy, G.ox, G.yt, seg(p, .25, .6), 1, lw, hd);
+    arrowTo(G.ox, G.oy, G.xe, G.oy, seg(p, .35, .7), 1, lw, hd);
+    text('Зріст', G.ox + G.fs * 2.2, G.yt - G.fs * .9, G.fs * 1.05, seg(p, .45, .8), 'center', 'italic ');
+    text('Вік', G.xe + G.fs * .3, G.oy - G.fs * 1.2, G.fs * 1.05, seg(p, .45, .8), 'center', 'italic ');
+    // the two numbers travel to the axes
+    const ageA = { x: A.cx - A.ph * .36, y: A.top + A.ph * .5 }, hA = { x: bx + A.ph * .26, y: A.top + A.ph * .5 };
+    const q = seg(p, .3, .85);
+    text('Вік: 25', ageA.x, ageA.y, A.fs, 1 - seg(p, .1, .35), 'right');
+    text('25', lerp(ageA.x, pt.x, q), lerp(ageA.y, G.oy + G.fs * .9, q), lerp(A.fs, G.fs * .75, q), seg(p, .15, .4), 'center');
+    const w0 = textW('1м80', A.fs) / 2, w1 = textW('1м80', G.fs * .75) / 2;
+    text('1м80', lerp(hA.x + w0, G.ox - G.fs * .35 - w1, q), lerp(hA.y, pt.y, q), lerp(A.fs, G.fs * .75, q), 1);
+    // guides + point
+    const g = seg(p, .7, .9);
+    if (g > 0) {
+      ctx.save(); ctx.globalAlpha = g * .6; ctx.strokeStyle = '#bbb'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 6]);
+      ctx.beginPath(); ctx.moveTo(G.ox, pt.y); ctx.lineTo(pt.x, pt.y); ctx.lineTo(pt.x, G.oy); ctx.stroke(); ctx.restore();
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, G.fs * .22 * backOut(g), 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    }
+  }
+  function plotToArch(p) {
+    const B = personGeom(41), G = plotGeom(), pt = plotPoint(G), M = archMap();
+    const pa = 1 - seg(p, 0, .35);
+    const sh = lerp(1, .8, seg(p, 0, .35));
+    drawPerson(B.cx, H * .5 - B.ph * sh / 2, B.ph * sh, pa);
+    // the 2-D plot collapses into the bottleneck: that plane IS the latent space
+    const bA = M.P(870, 125), bB = M.P(1122, 228);
+    const r0 = { x0: G.ox, y0: G.yt, x1: G.xe, y1: G.oy };
+    const r1 = { x0: Math.min(bA.x, bB.x), y0: Math.min(bA.y, bB.y), x1: Math.max(bA.x, bB.x), y1: Math.max(bA.y, bB.y) };
+    const c = seg(p, .1, .55);
+    const R = { x0: lerp(r0.x0, r1.x0, c), y0: lerp(r0.y0, r1.y0, c), x1: lerp(r0.x1, r1.x1, c), y1: lerp(r0.y1, r1.y1, c) };
+    const axA = 1 - seg(p, .4, .65), lw = Math.max(2, G.fs * .07);
+    arrowTo(R.x0, R.y1, R.x0, R.y0, 1, axA, lw, lerp(G.fs * .55, 6, c));
+    arrowTo(R.x0, R.y1, R.x1, R.y1, 1, axA, lw, lerp(G.fs * .55, 6, c));
+    const labA = 1 - seg(p, 0, .3);
+    text('Зріст', G.ox + G.fs * 2.2, G.yt - G.fs * .9, G.fs * 1.05, labA, 'center', 'italic ');
+    text('Вік', G.xe + G.fs * .3, G.oy - G.fs * 1.2, G.fs * 1.05, labA, 'center', 'italic ');
+    text('25', pt.x, G.oy + G.fs * .9, G.fs * .75, labA);
+    text('1м80', G.ox - G.fs * .35, pt.y, G.fs * .75, labA, 'right');
+    if (labA > 0) { ctx.save(); ctx.globalAlpha = labA * .6; ctx.strokeStyle = '#bbb'; ctx.setLineDash([5, 6]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(G.ox, pt.y); ctx.lineTo(pt.x, pt.y); ctx.lineTo(pt.x, G.oy); ctx.stroke(); ctx.restore(); }
+    const px = lerp(pt.x, lerp(R.x0, R.x1, .25), c), py = lerp(pt.y, lerp(R.y1, R.y0, .8), c);
+    const pr = G.fs * .22 * (1 - seg(p, .45, .65));
+    if (pr > .2) { ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); }
+    if (c > 0) { ctx.save(); ctx.globalAlpha = seg(p, .3, .6); ctx.strokeStyle = '#6fb7d6'; ctx.lineWidth = Math.max(1.5, 4 * M.k); ctx.strokeRect(R.x0, R.y0, R.x1 - R.x0, R.y1 - R.y0); ctx.restore(); }
+    drawArch({ unfold: seg(p, .5, .85), boxA: 0, labA: seg(p, .75, .95), boxLabA: 0, arrowP: seg(p, .7, .95), inA: seg(p, .75, 1), outBrA: 0, outValA: 0 });
+    const M2 = archMap(), bc = M2.P(996, 177);
+    boxLabel(bc, Math.max(11, 36 * M2.k), seg(p, .6, .85));
+  }
+  function archFlow(p) {
+    const M = archMap(), k = M.k, fs = Math.max(13, 52 * k);
+    const glow = Math.sin(Math.PI * seg(p, .3, .6));
+    const outA = seg(p, .45, .65);
+    const land = seg(p, .5, .9);
+    drawArch({ glow, outBrA: outA, outValA: 0 });
+    const ic = M.P(190, 177), oc = M.P(1802, 177), bc = M.P(996, 177);
+    MOFF.forEach(([dx, dy], i) => {
+      // into the encoder…
+      const q1 = seg(p, .05 + i * .03, .42 + i * .03);
+      if (q1 > 0 && q1 < 1) {
+        const x = lerp(ic.x + dx * k, bc.x, ease(q1)), y = lerp(ic.y + dy * k, bc.y, ease(q1));
+        text(IN4[i], x, y, fs * lerp(1, .35, q1), 1 - seg(q1, .75, 1), 'center', '', '#e6dc4e');
+      }
+      // …out of the decoder, landing in the reconstruction
+      const q2 = seg(p, .5 + i * .03, .85 + i * .03);
+      if (q2 > 0) {
+        const x = lerp(bc.x, oc.x + dx * k, ease(q2)), y = lerp(bc.y, oc.y + dy * k, ease(q2));
+        text(IN4[i], x, y, fs * lerp(.35, 1, q2), seg(q2, 0, .25), 'center', '', q2 > .97 ? '#fff' : '#e6dc4e');
+      }
+    });
+    void land;
   }
 
   function frame(now) {
