@@ -987,6 +987,12 @@
     [[13.5, 13.8], [17.5, 15.4], [18, 19], [15, 22.4], [10, 23.4], [6.4, 21.4]],
     [[9, 13.7], [13.5, 13.7]],
   ];
+  // what the bottleneck shows: three separate lines that hint at a 3 (top arc, middle dash, bottom arc) but are not a 3
+  const FEAT3 = [
+    [[9.5, 7], [14.5, 5.6], [19, 7.4]],
+    [[10.5, 14], [15.5, 14]],
+    [[7.5, 22], [12.5, 23.6], [17.5, 21.6]],
+  ];
   // what the decoder rebuilds from them: a similar, slightly soft 3
   const REC3 = (() => {
     const S = 8, cv3 = document.createElement('canvas'); cv3.width = cv3.height = N * S;
@@ -1502,7 +1508,7 @@
     ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = `rgb(${col})`; ctx.lineCap = ctx.lineJoin = 'round';
     ctx.lineWidth = Math.max(2, k * 1.15);
     if (glow > 0) { ctx.shadowColor = `rgba(${col},.9)`; ctx.shadowBlur = 16 * glow; }
-    STROKES3.forEach((s, i) => {
+    FEAT3.forEach((s, i) => {
       const pr = clamp(prog * 3 - i);
       if (pr <= 0) return;
       const len = strokePath(s, map);
