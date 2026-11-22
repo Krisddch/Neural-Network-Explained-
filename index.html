@@ -203,7 +203,7 @@
     <h2>Чорний — майже нуль</h2>
     <p><b>0.01</b>: нейрон майже «вимкнений».</p>
   </div>
-  <div class="cap top" data-at="32.3" data-span="0.6" data-hold="1">
+  <div class="cap top" data-at="32.3" data-span="0.6">
     <h2>Сірий — десь посередині</h2>
     <p><b>0.58</b>. Це число називають <em>активацією</em> нейрона: що яскравіше, то сильніше він «світиться».</p>
   </div>
@@ -269,9 +269,9 @@
   const stag = (p, d, spread = .35) => ease(clamp((p - d * spread) / (1 - spread)));
 
   // ---------- Timeline (in "scene units") ----------
-  const T_END = 33;
+  const T_END = 43;
   const UNIT = 1.15;              // viewport heights of scroll per unit
-  const STOPS = [0.25, 1.75, 2.95, 3.6, 5.0, 6.35, 8.45, 9.65, 10.35, 12.15, 13.55, 15.9, 16.95, 18.75, 20.95, 23.1, 25.9, 27.9, 29.65, 30.95, 32.3];
+  const STOPS = [0.25, 1.75, 2.95, 3.6, 5.0, 6.35, 8.45, 9.65, 10.35, 12.15, 13.55, 15.9, 16.95, 18.75, 20.95, 23.1, 25.9, 27.9, 29.65, 30.95, 32.3, 34.9, 36.4, 38.4, 39.9, 41.8];
 
   const track = document.getElementById('track');
   const resizeTrack = () => track.style.height = (T_END * UNIT + 1) * innerHeight + 'px';
@@ -703,12 +703,14 @@
       : { sp: W * .0168, dx: W * .0485, dy: H * .097, x0: W * .01, y0: H * .3 };
   }
   function drawUnroll(t, now) {
-    if (t < 24.35) return;
+    if (t < 24.35 || t >= 33.85) return;
     const NB = netB(), G = L.neur(), C = cascadeGeom();
+    const ex = raw(t, 32.8, 33.8);                         // grid flies into the 9's blue frame
+    const NBx = nineBox(), NC = netC();
     const pan = lerp(6, 16, ease(raw(t, 25.2, 26.7)));      // camera travels down the row-train
     const em = raw(t, 24.4, 25.5);                         // neurons stream out of the input column
     const col = raw(t, 26.6, 27.6);                        // train collapses back into the square
-    const numA = seg(t, 28.2, 28.8);
+    const numA = seg(t, 28.2, 28.8) * (1 - seg(t, 32.6, 32.9));
     const lift = seg(t, 28.7, 29.35);
     const gx0 = G.cx - G.cell * N / 2, gy0 = G.cy - G.cell * N / 2;
 
@@ -732,6 +734,12 @@
         rad = lerp(rad, G.cell * .41, k);
         fadeTop = lerp(fadeTop, 1, k);
       }
+      let ringK = 1;
+      if (ex > 0) {
+        const k = stag(ex, (r / N) * .5 + seeds[i].d * .5, .5);
+        const tx = NBx.cx + (c - N / 2 + .5) * NBx.cell, ty = NBx.cy + (r - N / 2 + .5) * NBx.cell;
+        x = lerp(x, tx, k); y = lerp(y, ty, k); rad = lerp(rad, NBx.cell * .56, k); ringK = 1 - k;
+      }
       if (a <= 0 || x < -40 || x > W + 40 || y < -40 || y > H + 40) continue;
       if (i === LIFT && lift > 0) continue;
       a *= fadeTop;
@@ -740,7 +748,7 @@
       ctx.globalAlpha = a;
       ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2);
       if (v > .02) { const g = (v * 255) | 0; ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fill(); }
-      ctx.lineWidth = Math.max(.7, rad * .08); ctx.strokeStyle = 'rgba(225,225,225,.75)'; ctx.stroke();
+      if (ringK > 0) { ctx.lineWidth = Math.max(.7, rad * .08); ctx.strokeStyle = `rgba(225,225,225,${.75 * ringK})`; ctx.stroke(); }
       if (numA > 0 && col >= 1) {
         const w = clamp(numA * 1.6 - (r + c) / (2 * N) * .6);
         if (w > 0) {
@@ -760,7 +768,7 @@
     if (n784 > 0) drawDigitGlyph('784', mobile ? W * .85 : W * .87, H * (mobile ? .17 : .2), fsBig, n784);
 
     // braces + equation (same as slide 11, same place)
-    const bA = seg(t, 28.1, 28.55);
+    const bA = seg(t, 28.1, 28.55) * (1 - seg(t, 32.6, 33.0));
     if (bA > 0) {
       const gs = G.cell * N, off = Math.max(10, G.cell * .55), depth = Math.max(9, G.cell * .55);
       ctx.save(); ctx.globalAlpha = bA; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, G.cell * .1); ctx.lineCap = 'round';
@@ -784,14 +792,15 @@
         ? { x: W / 2, y: G.cy + gs / 2 + 42 + 30 + R }
         : { x: G.cx + gs / 2 + G.cell * 1.3 + R, y: G.cy + G.cell * 1.5 };
       const sx = gx0 + (13 + .5) * G.cell, sy = gy0 + (7 + .5) * G.cell;
-      const x = lerp(sx, T.x, lift), y = lerp(sy, T.y, lift) - Math.sin(lift * Math.PI) * 60;
-      const rad = lerp(G.cell * .41, R, lift);
-      const v = lerp(lerp(1, .01, seg(t, 30.0, 30.65)), .58, seg(t, 31.3, 31.95));
+      const q = seg(t, 33.0, 33.8), dst = NC.layers[0][4];   // …and joins the network's input layer
+      const x = lerp(lerp(sx, T.x, lift), dst.x, q), y = lerp(lerp(sy, T.y, lift) - Math.sin(lift * Math.PI) * 60, dst.y, q) - Math.sin(q * Math.PI) * 50;
+      const rad = lerp(lerp(G.cell * .41, R, lift), NC.r, q);
+      const v = lerp(lerp(lerp(1, .01, seg(t, 30.0, 30.65)), .58, seg(t, 31.3, 31.95)), 0, q);
       const g = (v * 255) | 0;
       ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2);
       ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fill();
       ctx.lineWidth = Math.max(1, rad * .025); ctx.strokeStyle = `rgba(230,230,230,${.5 + .5 * (1 - v)})`; ctx.stroke();
-      const ta = seg(t, 29.0, 29.35);
+      const ta = seg(t, 29.0, 29.35) * (1 - seg(t, 33.0, 33.3));
       if (ta > 0) {
         ctx.globalAlpha = ta;
         ctx.fillStyle = v > .7 ? '#000' : '#fff';
@@ -799,6 +808,181 @@
         ctx.fillText(v.toFixed(2), x, y + rad * .03);
         ctx.globalAlpha = 1;
       }
+    }
+  }
+
+
+  // ---------- Slides 21–25: hidden layers, output layer, input layer as one long row ----------
+  function netC() {
+    const Y0 = H * (mobile ? .25 : .1), Y1 = H * .97, s = (Y1 - Y0) / 17.15;
+    const w = mobile ? W * .55 : Math.min(W * .42, (Y1 - Y0) * .8);
+    const xIn = mobile ? W * .27 : W * .37;
+    const xs = [0, 1, 2, 3].map(k => xIn + w * k / 3);
+    const layers = [
+      Array.from({ length: 16 }, (_, i) => ({ x: xs[0], y: Y0 + (i < 8 ? i : i + 2.15) * s })),
+      Array.from({ length: 16 }, (_, i) => ({ x: xs[1], y: Y0 + (1.09 + i) * s })),
+      Array.from({ length: 16 }, (_, i) => ({ x: xs[2], y: Y0 + (1.09 + i) * s })),
+      Array.from({ length: 10 }, (_, i) => ({ x: xs[3], y: Y0 + (4.1 + i) * s })),
+    ];
+    return { layers, r: s * .36, s, Y0, xs };
+  }
+  function nineBox() {
+    const size = mobile ? H * .13 : Math.min(W * .17, H * .29);
+    return mobile
+      ? { cx: W * .2, cy: H * .11, cell: size / N }
+      : { cx: W * .015 + size / 2, cy: H * .1 + size / 2, cell: size / N };
+  }
+  function rowGeom() {
+    const sp = mobile ? W * .048 : W * .028, gh = sp * 1.6, y = H * .42;
+    const nodes = Array.from({ length: 16 }, (_, k) => ({
+      x: k < 8 ? W / 2 - gh - (7 - k + .5) * sp : W / 2 + gh + (k - 8 + .5) * sp, y,
+    }));
+    return { nodes, r: sp * .375, sp, y, gh };
+  }
+  function lineGeom() {
+    const sp = mobile ? W * .03 : W * .015;
+    return { sp, gap: sp * 1.5, r: sp * .42, y: H * .5 };
+  }
+  const lineX = (Lg, i, center) => W / 2 + (i - center) * Lg.sp + (Math.floor(i / N) - center / N) * Lg.gap;
+  const big784 = () => mobile ? { x: W * .8, y: H * .12, fs: 30 } : { x: W * .81, y: H * .14, fs: Math.max(28, Math.min(72, W * .04)) };
+
+  function ringNode(x, y, r, fill, alpha = 1, ry = r) {
+    if (r <= .3 || alpha <= 0) return;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath(); ctx.ellipse(x, y, r, Math.max(.4, ry), 0, 0, Math.PI * 2);
+    const g = (fill * 255) | 0; ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fill();
+    ctx.lineWidth = Math.max(1.1, r * .11); ctx.strokeStyle = '#f0f0f0'; ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawPart3(t, now) {
+    if (t < 33.25) return;
+    const C = netC(), RG = rowGeom(), LG = lineGeom();
+    const toRow = raw(t, 37.15, 38.05);                    // input column → horizontal row
+    const restFade = 1 - seg(t, 37.0, 37.4);               // hidden/output/edges/box disappear
+    const toLine = raw(t, 38.8, 39.8);                     // row → one long edge-on line
+    const unflat = seg(t, 40.3, 41.1);
+    const center = lerp(392, 250, seg(t, 40.3, 41.2)) + (560 - 250) * seg(t, 41.2, 42.8);
+
+    // --- network (slides 21/22) ---
+    if (t < 37.5) {
+      const app = l => seg(t, 33.3 + l * .2, 33.8 + l * .2);
+      // edges
+      ctx.globalAlpha = restFade;
+      for (let l = 0; l < 3; l++) {
+        const ep = seg(t, 33.7 + l * .22, 34.25 + l * .22);
+        if (ep <= 0) continue;
+        const path = new Path2D();
+        for (const a of C.layers[l]) for (const b of C.layers[l + 1]) { path.moveTo(a.x, a.y); path.lineTo(lerp(a.x, b.x, ep), lerp(a.y, b.y, ep)); }
+        ctx.lineWidth = .6; ctx.strokeStyle = 'rgba(220,220,220,.45)'; ctx.stroke(path);
+      }
+      ctx.globalAlpha = 1;
+      const out9 = win(t, 34.6, 35.0, 35.6, 35.95);
+      for (let l = 1; l < 4; l++) C.layers[l].forEach((n, i) => {
+        const k = backOut(clamp(app(l) * 1.6 - (i / C.layers[l].length) * .6));
+        ringNode(n.x, n.y, C.r * k * (restFade > 0 ? 1 : 0), l === 3 && i === 9 ? out9 : 0, clamp(k) * restFade);
+      });
+      // labels 0–9
+      const labA = seg(t, 33.9, 34.3) * restFade;
+      if (labA > 0) C.layers[3].forEach((n, k) => drawDigitGlyphAlign(String(k), n.x + C.r + C.s * .18, n.y + C.s * .03, C.s * .78, labA, 'left'));
+      // brace "784"
+      const bA = seg(t, 33.6, 34.0) * (1 - seg(t, 37.0, 37.3));
+      if (bA > 0) {
+        const top = C.layers[0][0], bot = C.layers[0][15];
+        const bx = top.x - C.r - C.s * .5, depth = C.s * .5;
+        ctx.save(); ctx.globalAlpha = bA; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, C.s * .07); ctx.lineCap = 'round';
+        drawBrace(bx, bot.y + C.r, bx, top.y - C.r, depth, bA);
+        ctx.restore();
+        drawDigitGlyphAlign('784', bx - depth - C.s * .3, (top.y + bot.y) / 2, Math.min(64, C.s * (mobile ? .7 : 1.05)), bA, 'right');
+      }
+      // the 9 in its blue frame (the grid flew in here)
+      const boxA = seg(t, 33.4, 33.8) * restFade;
+      const NBx = nineBox();
+      if (boxA > 0) drawFrame(NBx, boxA, '111,183,214', NBx.cell * .5);
+      if (t >= 33.8) drawDigit(NINE, NBx, restFade, 0);
+      // slide 21: hidden layers + "?"
+      const hA = win(t, 34.4, 34.85, 35.6, 35.95);
+      if (hA > 0) {
+        const h0 = C.layers[1][0], h15 = C.layers[1][15], pad = C.r * 1.6;
+        const x0 = C.xs[1] - pad, x1 = C.xs[2] + pad, y0 = h0.y - pad, y1 = h15.y + pad;
+        const grow = 1.06 - .06 * hA;
+        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+        drawHlBox(cx, cy, (x1 - x0) * grow, (y1 - y0) * grow, hA);
+        const fs = Math.min(C.s * 1.25, 60, (x1 - x0) * (mobile ? .2 : .16));
+        ctx.globalAlpha = hA; ctx.fillStyle = '#e6dc4e'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.font = digitFont(fs);
+        ctx.fillText('«Приховані шари»', cx, y0 - fs * .35);
+        ctx.textBaseline = 'middle';
+        ctx.font = `600 ${(y1 - y0) * .32 * (1.15 - .15 * hA)}px "STIX Two Text", serif`;
+        ctx.fillText('?', cx, cy + Math.sin(now / 600) * 4);
+        ctx.globalAlpha = 1;
+      }
+      // slide 22: output layer box
+      const oA = win(t, 35.9, 36.3, 37.0, 37.3);
+      if (oA > 0) {
+        const o0 = C.layers[3][0], o9 = C.layers[3][9];
+        const x0 = o0.x - C.r * 1.5, x1 = o0.x + C.r + C.s * .18 + C.s * .78 * .7 + C.r * .6;
+        const y0 = o0.y - C.r * 1.6, y1 = o9.y + C.r * 1.6, grow = 1.08 - .08 * oA;
+        drawHlBox((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) * grow, (y1 - y0) * grow, oA);
+      }
+    }
+
+    // --- input layer: column → row → long line → face-on line with values ---
+    const bigNeuronDone = t >= 33.8;
+    if (toLine < 1) {
+      const inApp = seg(t, 33.3, 33.8);
+      C.layers[0].forEach((n, k) => {
+        if (k === 4 && !bigNeuronDone) return;
+        const kk = k === 4 ? 1 : backOut(clamp(inApp * 1.6 - (k / 16) * .6));
+        const p = stag(toRow, (k / 16) * .5, .5);
+        const R = RG.nodes[k];
+        let x = lerp(n.x, R.x, p) + Math.sin(p * Math.PI) * 40, y = lerp(n.y, R.y, p);
+        let r = lerp(C.r, RG.r, p) * kk;
+        if (toLine > 0) return;   // handled by the long line below
+        ringNode(x, y, r, 0, clamp(kk));
+      });
+      // dots
+      const dA = seg(t, 33.5, 33.9) * (toLine > 0 ? 0 : 1);
+      if (dA > 0) {
+        const a7 = C.layers[0][7], a8 = C.layers[0][8];
+        const cx = lerp(a7.x, W / 2, ease(toRow)), cy = lerp((a7.y + a8.y) / 2, RG.y, ease(toRow));
+        const span = lerp((a8.y - a7.y) / 4, RG.sp * .35, ease(toRow));
+        ctx.fillStyle = `rgba(255,255,255,${dA})`;
+        for (let k = -1; k <= 1; k++) {
+          const ang = lerp(Math.PI / 2, 0, ease(toRow));
+          ctx.beginPath(); ctx.arc(cx + Math.cos(ang) * span * k, cy + Math.sin(ang) * span * k, Math.max(1.5, lerp(C.r, RG.r, toRow) * .14), 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      // horizontal brace + 784 under the row (slide 23)
+      const hb = win(t, 37.8, 38.2, 38.8, 39.1);
+      if (hb > 0) {
+        const xa = RG.nodes[0].x - RG.r, xb = RG.nodes[15].x + RG.r, yb = RG.y + RG.r + RG.sp * .45;
+        ctx.save(); ctx.globalAlpha = hb; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, RG.sp * .1); ctx.lineCap = 'round';
+        drawBrace(xb, yb, xa, yb, RG.sp * .55, hb);
+        ctx.restore();
+        drawDigitGlyph('784', W / 2, yb + RG.sp * .55 + RG.sp * 1.15, Math.min(68, RG.sp * 1.5), hb);
+      }
+    }
+    if (toLine > 0) {
+      const flat = lerp(1, .12, ease(toLine)) * 1 + (1 - lerp(1, .12, ease(toLine))) * unflat;
+      const valA = seg(t, 40.5, 41.2);
+      for (let i = 0; i < NN; i++) {
+        const tx = lineX(LG, i, center);
+        let x = tx, y = LG.y, r = LG.r, a = 1;
+        if (toLine < 1) {
+          const p = stag(toLine, Math.abs(i - 392) / 392 * .55 + seeds[i].d * .15, .6);
+          let sx, sy, sr;
+          if (i < 8) { const R = RG.nodes[i]; sx = R.x; sy = R.y; sr = RG.r; }
+          else if (i >= 776) { const R = RG.nodes[8 + i - 776]; sx = R.x; sy = R.y; sr = RG.r; }
+          else { sx = W / 2; sy = RG.y; sr = 0; a = p > 0 ? 1 : 0; }
+          x = lerp(sx, tx, p); y = lerp(sy, LG.y, p); r = lerp(sr, LG.r, p);
+        }
+        if (x < -20 || x > W + 20 || a <= 0) continue;
+        ringNode(x, y, r, NINE[i] * valA, a, r * flat);
+      }
+      const nA = seg(t, 39.4, 39.8);
+      const B = big784();
+      if (nA > 0) drawDigitGlyph('784', B.x, B.y, B.fs, nA);
     }
   }
 
@@ -1195,6 +1379,9 @@
 
     // --- Scene 16–20 ---
     drawUnroll(t, now);
+
+    // --- Scene 21–25 ---
+    drawPart3(t, now);
 
     updateDOM(t);
   }
