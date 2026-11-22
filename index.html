@@ -185,7 +185,7 @@
 <div class="hero-shade" id="heroShade"></div>
 
 <div class="captions" id="captions">
-  <div class="cap bottom" data-key="hero" data-span="0.75">
+  <div class="cap bottom" data-key="hero" data-span="0.5">
     <span class="kicker">Neural Network Explanation</span>
     <h1>Як нейромережа<br>бачить цифру</h1>
     <p>Гортай вниз — і подивимось, що відбувається всередині.</p>
@@ -410,7 +410,7 @@
       anchor(u, anchors); u += dur;
     };
     // 1–2  a 3; the brain recognises it
-    old([[0, 0], [2.4, 2.4]], null, { hero: .25, brain: 1.75 });
+    old([[0, 0], [2.4, 2.4]], null, { hero: .78, brain: 1.75 });
     // 3–4  other 3s; different light-sensitive cells fire
     old([[0, 3.85], [3.15, 7.0]], null, { variants: 1.15, cells: 2.55 });
     // bridge → "3 = 3"
@@ -2500,7 +2500,7 @@
   const DWELL = .7, CAP_SHIFT = .25;
   let DW = [];
   function computeDwells() {
-    DW = caps.filter(c => c.el.dataset.key !== 'hero' && getComputedStyle(c.el).display !== 'none')
+    DW = caps.filter(c => getComputedStyle(c.el).display !== 'none')
       .map(c => ({ u: c.at, len: DWELL })).sort((a, b) => a.u - b.u);
   }
   function uToRaw(u) { let r = u; for (const d of DW) if (d.u < u) r += d.len; return r; }
@@ -2575,6 +2575,24 @@
   const digitFont = c => `${c}px "STIX Two Text", "Times New Roman", serif`;
 
   // ---------- Main render ----------
+  const QR = ["111111100110101011011101001111111","100000100001000111000100101000001","101110101011001110000100001011101","101110101111000100110010001011101","101110101101101110110101001011101","100000101011001000001110101000001","111111101010101010101010101111111","000000001001001010001100100000000","101111100100111001010011101111100","100111001011011011111001001101101","001000101111011101000110011010100","000011000010010011101101111011100","100000100100001010000010010111011","011000001100100100110101011001011","000111101111011111100000011011110","101111000111101100101110011001100","111111100101000101101010010110101","000110000100011110111101001101101","010001101010001110101100000110110","110011010110000010000110101111110","011110110100001000110011110011000","101001010001101111011000001001001","100100111011110001001100001100010","100010010011100010101100011001110","101110111010000001000001111110010","000000001010111001111000100010101","111111100000100111001101101010110","100000101100001011111111100011101","101110101111101010000010111111000","101110101001000101111000010011111","101110101010100110100010111101100","100000100011000100011100001011100","111111101100011101010010111101010"];
+  function qrGeom() {
+    const s = mobile ? Math.min(W * .34, H * .17) : Math.min(H * .17, W * .12), pad = s * .07, y = H * (mobile ? .045 : .035);
+    const fs = mobile ? 12 : Math.max(12, Math.min(16, s * .085));
+    return { s, pad, x: W / 2, y, fs, bot: y + s + pad * 2 + fs * 2 };
+  }
+  function drawQR(a) {
+    if (a <= 0) return;
+    const Q = qrGeom(), n = QR.length, c = Q.s / n, x0 = Q.x - Q.s / 2, y0 = Q.y + Q.pad;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = '#fff';
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x0 - Q.pad, Q.y, Q.s + Q.pad * 2, Q.s + Q.pad * 2, Q.pad); ctx.fill(); }
+    else ctx.fillRect(x0 - Q.pad, Q.y, Q.s + Q.pad * 2, Q.s + Q.pad * 2);
+    ctx.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (QR[r][k] === '1') ctx.fillRect(x0 + k * c, y0 + r * c, c + .3, c + .3);
+    ctx.restore();
+    text('Відкрити на телефоні', Q.x, Q.y + Q.s + Q.pad * 2 + Q.fs * 1.1, Q.fs, a * .75, 'center', '', '#ccc');
+  }
   function renderOld(t, now) {
     const intro = clamp((now - t0) / INTRO_MS);
     ctx.clearRect(0, 0, W, H);
@@ -2596,6 +2614,10 @@
     if (t < 1.6) {
       const z = 1 + (1 - intro) * .08 - t * .05;
       A = { ...A, cell: A.cell * z, cy: A.cy - t * 18 };
+      // opening: QR code on top, the 3 at two thirds below it; scrolling grows the 3 to full screen
+      const g = ease(seg(t, .04, .7)), Q = qrGeom(), s0 = A.cell * N * 2 / 3;
+      const cy0 = Q.bot + H * .035 + s0 * .33;
+      A = { ...A, cell: lerp(A.cell * 2 / 3, A.cell, g), cy: lerp(cy0, A.cy, g) };
     }
 
     // scene-level parallax drift during holds
@@ -2713,6 +2735,8 @@
         ctx.fillText(v.toFixed(1), P.x, P.y + (1 - w) * 6);
       }
     }
+
+    if (t < .5) drawQR((1 - seg(t, 0, .35)) * clamp((now - t0) / 900));
 
     // --- Scene 2: arrow + serif 3 ---
     const s2 = win(t, 1.2, 1.65, 2.05, 2.35);
