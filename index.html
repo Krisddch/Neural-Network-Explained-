@@ -46,7 +46,7 @@
     opacity: 0;
     will-change: transform, opacity, filter;
   }
-  .cap.top { top: 8vh; }
+  .cap.top { top: 12vh; }
   .cap.bottom { bottom: 6vh; }
   .cap .kicker {
     display: inline-block;
@@ -63,7 +63,7 @@
     letter-spacing: -0.03em;
   }
   .cap h2 {
-    font-size: clamp(22px, 3.1vw, 40px);
+    font-size: clamp(24px, 3.3vw, 44px);
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.015em;
@@ -112,7 +112,8 @@
 
   @media (max-width: 700px) {
     .rail { display: none; }
-    .cap.top { top: 5vh; }
+    .cap.top { top: 8vh; }
+    .cap.desk { display: none; }
     .cap.bottom { bottom: 4vh; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -162,6 +163,13 @@
     .pad-col { width: min(320px, 100%); margin: 0 auto; }
     #netview { height: 62vh; }
   }
+  .fs {
+    position: fixed; right: 16px; bottom: 16px; z-index: 7; width: 38px; height: 38px;
+    display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+    background: rgba(20,20,20,.7); color: #ddd; border: 1px solid #444; transition: background .2s, color .2s;
+  }
+  .fs:hover { background: #222; color: #fff; }
+  .fs[hidden] { display: none; }
   .credits {
     position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3;
     display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: calc(100vw - 32px);
@@ -234,6 +242,35 @@
     <h2>…до 1 для білого</h2>
     <p>Це число називають <em>активацією</em>: що вона більша, то яскравіше «світиться» нейрон.</p>
   </div>
+  <div class="cap top" data-key="row" data-span="0.45">
+    <h2>784 входи — один довгий ряд</h2>
+  </div>
+  <div class="cap top" data-key="ae" data-span="0.7">
+    <h2>Автоасоціативні мережі</h2>
+    <p>Енкодери · <b>Bottleneck</b> · декодери</p>
+  </div>
+  <div class="cap top" data-key="data" data-span="0.7">
+    <h2>Багато даних → кілька ознак</h2>
+  </div>
+  <div class="cap top" data-key="person" data-span="0.7">
+    <h2>Як коротко описати людину?</h2>
+  </div>
+  <div class="cap top" data-key="plot" data-span="0.7">
+    <h2>Двох чисел достатньо</h2>
+    <p>Вік і зріст — це точка на площині.</p>
+  </div>
+  <div class="cap top desk" data-key="arch" data-span="0.7">
+    <h2>Енкодер → Bottleneck → Декодер</h2>
+    <p>Стиснути до найважливішого — і відновити назад.</p>
+  </div>
+  <div class="cap top desk" data-key="img" data-span="0.7">
+    <h2>Те саме з картинкою</h2>
+    <p>Bottleneck зберігає лише найхарактерніші риси трійки.</p>
+  </div>
+  <div class="cap top" data-key="mse" data-span="0.7">
+    <h2>Наскільки вихід схожий на вхід?</h2>
+    <p>Порівнюємо зображення піксель за пікселем.</p>
+  </div>
   <div class="cap top" data-key="rows" data-span="0.6">
     <h2>Ці 784 нейрони — перший шар мережі</h2>
     <p>Рядок за рядком, по нейрону на кожен піксель.</p>
@@ -241,6 +278,7 @@
 </div>
 
 <nav class="rail" id="rail" aria-label="Розділи"></nav>
+<button class="fs" id="fsBtn" aria-label="На весь екран" title="На весь екран"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
 <div class="hint" id="hint">scroll<i></i></div>
 <div class="credits" id="credits">
   <a href="https://www.3blue1brown.com/lessons/neural-networks" target="_blank" rel="noopener">3Blue1Brown — But what is a neural network?</a>
@@ -389,11 +427,11 @@
     // 18  the square unrolls row by row
     old([[0, 27.7], [1.0, 26.6], [1.0, 25.55]], p => ({ n784: seg(p, .4, .6) }), { rows: 1.4 });
     // bridge → one long row
-    custom(1.0, bridgeLine);
+    custom(.75, bridgeLine);
     // 19–21  the long row, seen edge-on, then as "784" under a brace
-    old([[0, 41.2], [1.0, 42.8]], null, { line: .5 });
-    old([[0, 41.2], [.7, 41.2]], p => ({ center: lerp(560, 392, ease(p)), flat: lerp(1, .12, ease(p)), valA: 1 - seg(p, 0, .6) }));
-    old([[0, 39.8], [.8, 38.8], [.15, 38.6]], null, { row: .85 });
+    old([[0, 41.2], [.55, 42.8]], null, { line: .3 });
+    old([[0, 41.2], [.5, 41.2]], p => ({ center: lerp(560, 392, ease(p)), flat: lerp(1, .12, ease(p)), valA: 1 - seg(p, 0, .6) }));
+    old([[0, 39.8], [.6, 38.8], [.1, 38.6]], null, { row: .6 });
     // 22–23  last layer, hidden layers
     old([[0, 38.6], [.25, 38.05], [1.2, 36.9], [.6, 36.5]], null, { outl: 1.9 });
     old([[0, 36.5], [1.0, 35.3], [.5, 35.2]], null, { hidden: 1.3 });
@@ -573,7 +611,7 @@
     }
     ctx.globalAlpha = 1;
     const B = big784(), fs0 = mobile ? 30 : Math.max(28, Math.min(72, W * .04)), e = ease(p);
-    drawDigitGlyph('784', lerp(mobile ? W * .85 : W * .87, B.x, e), lerp(H * (mobile ? .17 : .2), B.y, e), lerp(fs0, B.fs, e), 1);
+    drawDigitGlyph('784', lerp(mobile ? W * .85 : W * .87, B.x, e), lerp(H * (mobile ? .26 : .2), B.y, e), lerp(fs0, B.fs, e), 1);
   }
 
 
@@ -594,8 +632,8 @@
 
   // the 8–5–3–5–8 autoencoder network
   function aeGeom() {
-    const S = mobile ? Math.min(H * .06, W * .072) : Math.min(H * .095, W * .068);
-    const cx = W / 2, cy = H * .5, xo = [-6.28, -2.5, 0, 2.5, 6.28], n = [8, 5, 3, 5, 8];
+    const S = mobile ? Math.min(H * .06, W * .072) : Math.min(H * .075, W * .06);
+    const cx = W / 2, cy = H * (mobile ? .52 : .58), xo = [-6.28, -2.5, 0, 2.5, 6.28], n = [8, 5, 3, 5, 8];
     const layers = n.map((k, l) => Array.from({ length: k }, (_, i) => ({ x: cx + xo[l] * S, y: cy + (i - (k - 1) / 2) * S })));
     return { layers, r: S * .25, S };
   }
@@ -648,7 +686,7 @@
   function dataGeom() {
     const fs = mobile ? W * .04 : Math.min(W * .032, H * .058);
     const dx = fs * (mobile ? 2.3 : 2.65), dy = fs * 1.65;
-    const mcx = W * (mobile ? .36 : .27), mcy = H * .52, fx = W * (mobile ? .86 : .835);
+    const mcx = W * (mobile ? .36 : .27), mcy = H * (mobile ? .54 : .6), fx = W * (mobile ? .86 : .835);
     return {
       fs, dx, dy, mcx, mcy, fx,
       cell: (r, c) => ({ x: mcx + (c - 2) * dx, y: mcy + (r - 2.5) * dy }),
@@ -693,7 +731,7 @@
   function plotGeom() {
     return mobile
       ? { ox: W * .42, oy: H * .62, xe: W * .93, yt: H * .36, fs: 18 }
-      : { ox: W * .51, oy: H * .74, xe: W * .76, yt: H * .22, fs: Math.max(22, Math.min(54, W * .03)) };
+      : { ox: W * .51, oy: H * .8, xe: W * .76, yt: H * .34, fs: Math.max(22, Math.min(54, W * .03)) };
   }
   const plotPoint = G => ({ x: G.ox + (G.xe - G.ox) * .25, y: G.oy - (G.oy - G.yt) * .8 });
 
@@ -1048,8 +1086,8 @@
 
   // MSE: compare pixel by pixel
   function mseGeom() {
-    const s = mobile ? W * .42 : Math.min(W * .3, H * .5);
-    const y = H * (mobile ? .38 : .42), d = s * (mobile ? .56 : .67);
+    const s = mobile ? W * .42 : Math.min(W * .28, H * .42);
+    const y = H * (mobile ? .42 : .5), d = s * (mobile ? .56 : .67);
     return { s, a: { x: W / 2 - d, y }, b: { x: W / 2 + d, y }, ty: y + s / 2 + H * (mobile ? .1 : .13), fs: mobile ? 26 : Math.min(64, W * .04) };
   }
   function imagesToMSE(p) {
@@ -1574,6 +1612,7 @@
   }));
 
   function resize() {
+    caps && caps.forEach(c => { c.ex = undefined; });
     DPR = Math.min(2, window.devicePixelRatio || 1);
     W = innerWidth; H = innerHeight; mobile = W < 760;
     for (const c of [cv, bgc, off, pcv]) { c.width = W * DPR; c.height = H * DPR; }
@@ -2055,7 +2094,7 @@
     // "784" while it's a row-train / plain square
     const n784 = OV.n784 ?? win(t, 25.15, 25.6, 28.1, 28.45) * (OV.no784 ? 0 : 1);
     const fsBig = mobile ? 30 : Math.max(28, Math.min(72, W * .04));
-    if (n784 > 0) drawDigitGlyph('784', mobile ? W * .85 : W * .87, H * (mobile ? .17 : .2), fsBig, n784);
+    if (n784 > 0) drawDigitGlyph('784', mobile ? W * .85 : W * .87, H * (mobile ? .26 : .2), fsBig, n784);
 
     // braces + equation (same as slide 11, same place)
     const bA = (OV.bA ?? seg(t, 28.1, 28.55)) * (1 - seg(t, 32.6, 33.0));
@@ -2134,7 +2173,7 @@
     return { sp, gap: sp * 1.5, r: sp * .42, y: H * .5 };
   }
   const lineX = (Lg, i, center) => W / 2 + (i - center) * Lg.sp + (Math.floor(i / N) - center / N) * Lg.gap;
-  const big784 = () => mobile ? { x: W * .8, y: H * .12, fs: 30 } : { x: W * .81, y: H * .14, fs: Math.max(28, Math.min(72, W * .04)) };
+  const big784 = () => mobile ? { x: W * .8, y: H * .26, fs: 30 } : { x: W * .81, y: H * .14, fs: Math.max(28, Math.min(72, W * .04)) };
 
   function ringNode(x, y, r, fill, alpha = 1, ry = r) {
     if (r <= .3 || alpha <= 0) return;
@@ -2262,7 +2301,7 @@
         const tx = lineX(LG, i, center);
         let x = tx, y = LG.y, r = LG.r, a = 1;
         if (toLine < 1) {
-          const p = stag(toLine, Math.abs(i - 392) / 392 * .55 + seeds[i].d * .15, .6);
+          const p = stag(toLine, Math.abs(i - 392) / 392 * .6, .55);
           let sx, sy, sr;
           if (i < 8) { const R = RG.nodes[i]; sx = R.x; sy = R.y; sr = RG.r; }
           else if (i >= 776) { const R = RG.nodes[8 + i - 776]; sx = R.x; sy = R.y; sr = RG.r; }
@@ -2301,6 +2340,14 @@
   }));
   const heroShade = document.getElementById('heroShade');
   const hint = document.getElementById('hint'), credits = document.getElementById('credits');
+  const fsBtn = document.getElementById('fsBtn'), de = document.documentElement;
+  const fsReq = de.requestFullscreen || de.webkitRequestFullscreen;
+  if (!fsReq || !(document.fullscreenEnabled ?? document.webkitFullscreenEnabled)) fsBtn.hidden = true;
+  fsBtn.onclick = () => {
+    const cur = document.fullscreenElement || document.webkitFullscreenElement;
+    if (cur) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else { const y = scrollY; Promise.resolve(fsReq.call(de)).then(() => scrollTo(0, y)).catch(() => {}); }
+  };
 
   const rail = document.getElementById('rail');
   const railBtns = STOPS.map((s, i) => {
@@ -2312,7 +2359,12 @@
 
   function updateDOM(t) {
     for (const c of caps) {
-      let d = (t - c.at) / c.span;
+      // hold the caption while the finished picture is on screen: it leaves only just before the next one
+      if (c.ex === undefined) {
+        const nx = caps.filter(o => o.at > c.at && getComputedStyle(o.el).display !== 'none').sort((a, b) => a.at - b.at)[0];
+        c.ex = Math.max(c.span, Math.min(c.span * 2.2, nx ? nx.at - nx.span - c.at - .05 : c.span * 2.2));
+      }
+      let d = t < c.at ? (t - c.at) / c.span : (t - c.at) / c.ex;
       if (c.el.dataset.hold && d > 0) d = 0;
       const o = d < 0 ? clamp((1 + d) / .3) : clamp((1 - d) / .16);
       const y = -d * 26;
