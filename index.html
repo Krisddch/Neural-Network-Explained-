@@ -380,7 +380,7 @@
     // bridge → "a neuron holds a number"
     custom(1.4, bridgeNeuron, { neuron: 1.3 });
     // 12–13  zoom out: one neuron per pixel, 28 × 28 = 784
-    old([[0, 18.8], [.5, 18.8], [1.2, 17.4], [.3, 17.05], [.6, 16.4], [.3, 16.2], [.4, 16.2]], null, { pixel: 1.9 });
+    old([[0, 18.8], [.5, 18.8], [1.2, 17.4], [.3, 17.05], [.5, 16.4], [.25, 16.2], [.6, 16.2]], null, { pixel: 1.9 });
     // 14–16  activation: 0.58, 0.01, 1.00
     old([[0, 28.1], [1.3, 29.35], [.5, 29.35], [.8, 30.65], [.5, 30.65], [.8, 31.95], [.6, 31.95]],
         () => ({ bA: 1, no784: 1 }), { act58: 1.6, act01: 2.6, act1: 3.8 });
@@ -410,9 +410,9 @@
     custom(.7, dataStatic);
     custom(1.4, personScene, { person: 1.5 });  // describe Volodymyr…
     custom(.9, () => personScene(1));
-    custom(1.6, p => squeezeScene(p), { squeeze: 1.7 });  // …the bottleneck keeps only age and height
-    custom(.7, () => squeezeScene(1));
-    custom(1.4, squeezeToArch, { arch: 1.5 });   // encoder → bottleneck → decoder
+    custom(1.5, descToPlot, { plot: 1.6 });       // …but two numbers are enough: a point on a plane
+    custom(.7, () => descToPlot(1));
+    custom(1.6, plotToArch, { arch: 1.7 });       // that plane is the bottleneck between encoder and decoder
     custom(2.2, archFlow, { flow: 1.2 });
     custom(1.4, archToImages, { img: 1.4 });     // the 3 from the beginning goes in…
     custom(2.8, strokeFlow);                     // …three strokes survive the bottleneck, a similar 3 comes out
@@ -674,16 +674,15 @@
   // person: unit figure, height 1, origin at the top centre of the head
   function drawPerson(cx, top, ph, a) {
     if (a <= 0) return;
-    const X = u => cx + u * ph, Y = v => top + v * ph;
-    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff';
-    const rr = (x, y, w, h, r) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(X(x), Y(y), w * ph, h * ph, r * ph); else ctx.rect(X(x), Y(y), w * ph, h * ph); ctx.fill(); };
-    ctx.beginPath(); ctx.arc(X(0), Y(.088), .088 * ph, 0, Math.PI * 2); ctx.fill();   // head
-    rr(-.19, .205, .38, .37, .075);                                                    // torso
-    rr(-.13, .5, .12, .5, .06); rr(.01, .5, .12, .5, .06);                             // legs
-    rr(-.19, .23, .075, .37, .0375);                                                   // left arm
-    ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = .08 * ph;                    // right arm, waving
-    ctx.beginPath(); ctx.moveTo(X(.14), Y(.255)); ctx.lineTo(X(.26), Y(.375)); ctx.lineTo(X(.38), Y(.245)); ctx.stroke();
-    ctx.restore();
+    const X = u => cx + u * ph, Y = v => top + v * ph, P = personCtx;
+    P.clearRect(0, 0, W, H); P.fillStyle = '#fff'; P.strokeStyle = '#fff';
+    const rr = (x, y, w, h, r) => { P.beginPath(); if (P.roundRect) P.roundRect(X(x), Y(y), w * ph, h * ph, r.map(v => v * ph)); else P.rect(X(x), Y(y), w * ph, h * ph); P.fill(); };
+    P.beginPath(); P.arc(X(0), Y(.09), .09 * ph, 0, Math.PI * 2); P.fill();               // head
+    rr(-.18, .205, .36, .42, [.08, .08, 0, 0]);                                            // torso + left arm, one block
+    rr(-.15, .55, .145, .45, [0, 0, .07, .07]); rr(.005, .55, .145, .45, [0, 0, .07, .07]); // legs flush with the torso
+    P.lineCap = P.lineJoin = 'round'; P.lineWidth = .085 * ph;                              // waving arm, attached at the shoulder
+    P.beginPath(); P.moveTo(X(.12), Y(.25)); P.lineTo(X(.26), Y(.38)); P.lineTo(X(.39), Y(.245)); P.stroke();
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.drawImage(pcv, 0, 0); ctx.restore();
   }
   function personGeom(which) {
     const ph = mobile ? Math.min(H * .3, W * .5) : Math.min(H * .5, W * .3);
@@ -863,6 +862,30 @@
       ctx.beginPath(); ctx.arc(pt.x, pt.y, G.fs * .22 * backOut(g), 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
     }
   }
+  function descToPlot(p) {
+    const A = personLay(), B = personGeom(41), G = plotGeom(), pt = plotPoint(G);
+    const m = ease(seg(p, .1, .7));
+    drawPerson(lerp(A.cx, B.cx, m), lerp(A.top, H * .5 - B.ph / 2, m), lerp(A.ph, B.ph, m), 1);
+    personBrace(A, 1 - seg(p, 0, .25));
+    [0, 2, 3, 4].forEach((i, k) => { const P = attrPos(A, i); text(ATTR[i], P.x, P.y, A.fs, 1 - seg(p, .02 + k * .04, .22 + k * .04), 'right'); });
+    const lw = Math.max(2, G.fs * .07), hd = G.fs * .55;
+    arrowTo(G.ox, G.oy, G.ox, G.yt, seg(p, .25, .6), 1, lw, hd);
+    arrowTo(G.ox, G.oy, G.xe, G.oy, seg(p, .35, .7), 1, lw, hd);
+    text('Зріст', G.ox + G.fs * 2.2, G.yt - G.fs * .9, G.fs * 1.05, seg(p, .45, .8), 'center', 'italic ');
+    text('Вік', G.xe + G.fs * .3, G.oy - G.fs * 1.2, G.fs * 1.05, seg(p, .45, .8), 'center', 'italic ');
+    const q = ease(seg(p, .3, .85)), a1 = attrPos(A, 1), hp = heightPos(A);
+    text(ATTR[1], a1.x, a1.y, A.fs, 1 - seg(p, .25, .45), 'right');
+    text('35', lerp(a1.x - textW('35', A.fs) / 2, pt.x, q), lerp(a1.y, G.oy + G.fs * .9, q), lerp(A.fs, G.fs * .75, q), seg(p, .25, .45));
+    text(HEIGHT_TXT(), hp.x, hp.y, A.fs, 1 - seg(p, .25, .45), 'left');
+    const w1 = textW('1м80', G.fs * .75) / 2;
+    text('1м80', lerp(hp.x + textW('1м80', A.fs) / 2, G.ox - G.fs * .35 - w1, q), lerp(hp.y, pt.y, q), lerp(A.fs, G.fs * .75, q), seg(p, .25, .45));
+    const g = seg(p, .75, .92);
+    if (g > 0) {
+      ctx.save(); ctx.globalAlpha = g * .6; ctx.strokeStyle = '#bbb'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 6]);
+      ctx.beginPath(); ctx.moveTo(G.ox, pt.y); ctx.lineTo(pt.x, pt.y); ctx.lineTo(pt.x, G.oy); ctx.stroke(); ctx.restore();
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, G.fs * .22 * backOut(g), 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    }
+  }
   function plotToArch(p) {
     const B = personGeom(41), G = plotGeom(), pt = plotPoint(G), M = archMap();
     const pa = 1 - seg(p, 0, .35);
@@ -880,7 +903,7 @@
     const labA = 1 - seg(p, 0, .3);
     text('Зріст', G.ox + G.fs * 2.2, G.yt - G.fs * .9, G.fs * 1.05, labA, 'center', 'italic ');
     text('Вік', G.xe + G.fs * .3, G.oy - G.fs * 1.2, G.fs * 1.05, labA, 'center', 'italic ');
-    text('25', pt.x, G.oy + G.fs * .9, G.fs * .75, labA);
+    text('35', pt.x, G.oy + G.fs * .9, G.fs * .75, labA);
     text('1м80', G.ox - G.fs * .35, pt.y, G.fs * .75, labA, 'right');
     if (labA > 0) { ctx.save(); ctx.globalAlpha = labA * .6; ctx.strokeStyle = '#bbb'; ctx.setLineDash([5, 6]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(G.ox, pt.y); ctx.lineTo(pt.x, pt.y); ctx.lineTo(pt.x, G.oy); ctx.stroke(); ctx.restore(); }
     const px = lerp(pt.x, lerp(R.x0, R.x1, .25), c), py = lerp(pt.y, lerp(R.y1, R.y0, .8), c);
@@ -1039,21 +1062,32 @@
   }
   let SCAN_ = null;
   const getScan = () => SCAN_ || (SCAN_ = (() => { const l = []; for (let i = 0; i < NN; i++) if (Math.max(MAIN[i], REC3[i]) > .2 && (i % N) % 2 === 0) l.push(i); return l; })());
+  let MSE_ = null;
+  const mseVal = () => { if (MSE_ === null) { let t = 0; for (let i = 0; i < NN; i++) t += (MAIN[i] - REC3[i]) ** 2; MSE_ = t / NN; } return MSE_; };
+  const f2 = v => v.toFixed(2);
+  function drawMSEFinal(G, a) {
+    if (a <= 0) return;
+    const fs = G.fs * (mobile ? .72 : .85);
+    text(`MSE = ¹⁄₇₈₄ Σ (вхід − вихід)² ≈ ${mseVal().toFixed(3)}`, W / 2, G.ty, fs, a);
+    text('середньоквадратична похибка · ✓ збігається з покроковим підрахунком', W / 2, G.ty + fs * 1.5, fs * (mobile ? .5 : .48), a, 'center', '', '#e6dc4e');
+  }
   function mseScan(p) {
     const G = mseGeom();
     drawImg(MAIN, G.a.x, G.a.y, G.s, 1); drawImg(REC3, G.b.x, G.b.y, G.s, 1);
-    const scanP = clamp(p / .62);
-    const idx = getScan()[Math.min(getScan().length - 1, Math.floor(scanP * getScan().length))];
+    const L = getScan(), scanP = clamp(p / .66), done = scanP >= 1;
+    const idx = L[Math.min(L.length - 1, Math.floor(scanP * L.length))];
     const c = G.s / N, r = (idx / N) | 0, col = idx % N;
-    const hlA = 1 - seg(p, .6, .7);
+    const hlA = 1 - seg(p, .64, .72);
     if (hlA > 0) for (const B of [G.a, G.b]) {
       ctx.strokeStyle = `rgba(230,220,78,${hlA})`; ctx.lineWidth = 2;
       ctx.strokeRect(B.x - G.s / 2 + col * c, B.y - G.s / 2 + r * c, c, c);
     }
-    const va = Math.round(MAIN[idx] * 255), vb = Math.round(REC3[idx] * 255);
-    const t1 = 1 - seg(p, .62, .72), t2 = seg(p, .72, .85);
-    text(`${va}   −   ${vb}`, W / 2, G.ty, G.fs, seg(p, 0, .08) * t1);
-    text('MSE = ¹⁄₇₈₄ Σ (вхід − вихід)²', W / 2, G.ty, G.fs * (mobile ? .8 : .9), t2);
+    let sum = 0; for (let i = 0; i <= (done ? NN - 1 : idx); i++) sum += (MAIN[i] - REC3[i]) ** 2;
+    const va = MAIN[idx], vb = REC3[idx], dd = va - vb;
+    const t1 = seg(p, 0, .08) * (1 - seg(p, .66, .74)), fs = G.fs * (mobile ? .72 : .85);
+    text(`${f2(va)} − ${f2(vb)} = ${f2(dd)}  →  ${dd < 0 ? '(' + f2(dd) + ')' : f2(dd)}² = ${(dd * dd).toFixed(3)}`, W / 2, G.ty, fs, t1);
+    text(`Σ ÷ 784 = ${(sum / NN).toFixed(3)}`, W / 2, G.ty + fs * 1.5, fs * .8, t1, 'center', '', '#e6dc4e');
+    drawMSEFinal(G, seg(p, .74, .86));
   }
 
   // the latent space: 2 bottleneck neurons = a point on a plane
@@ -1476,7 +1510,7 @@
     : { net: { cx: W / 2, cy: H * .15, S: Math.min(H * .028, W * .035) }, conv: { cx: W / 2, cy: H * .8, w: Math.min(W * .5, H * .8) } };
   function mseToThanks(p) {
     const G = mseGeom(), c = G.s / N;
-    text('MSE = ¹⁄₇₈₄ Σ (вхід − вихід)²', W / 2, G.ty, G.fs * (mobile ? .8 : .9), 1 - seg(p, 0, .25));
+    drawMSEFinal(G, 1 - seg(p, 0, .25));
     const fr = 1 - seg(p, 0, .3);
     drawImg(MAIN, G.a.x, G.a.y, G.s, 0, fr); drawImg(REC3, G.b.x, G.b.y, G.s, 0, fr);
     const S = [];
@@ -1530,6 +1564,7 @@
   const mainCtx = cv.getContext('2d');
   let ctx = mainCtx;
   const off = document.createElement('canvas'), offCtx = off.getContext('2d');
+  const pcv = document.createElement('canvas'), personCtx = pcv.getContext('2d');
   const bgc = document.getElementById('bg');
   const bctx = bgc.getContext('2d');
   let W = 0, H = 0, DPR = 1, mobile = false;
@@ -1541,7 +1576,8 @@
   function resize() {
     DPR = Math.min(2, window.devicePixelRatio || 1);
     W = innerWidth; H = innerHeight; mobile = W < 760;
-    for (const c of [cv, bgc, off]) { c.width = W * DPR; c.height = H * DPR; }
+    for (const c of [cv, bgc, off, pcv]) { c.width = W * DPR; c.height = H * DPR; }
+    personCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     offCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
     bctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -2357,15 +2393,16 @@
       if (morph9 > 0) vals[i] = lerp(vals[i], NINE[i], stag(morph9, (1 - ((i / N) | 0) / N) * .5 + seeds[i].d * .5, .5));
     }
 
+    const rigid = t > 16.3 && t < 17.1;           // neuron grid just slides, it is not rebuilt
     const pos = new Array(NN);
     for (let i = 0; i < NN; i++) {
       const r = (i / N) | 0, c = i % N;
       const d = spreadDir === 'row' ? r / N : c / N;
-      const lp = p === 0 ? 0 : stag(p, d * .7 + seeds[i].d * .3, .45);
+      const lp = p === 0 ? 0 : rigid ? ease(p) : stag(p, d * .7 + seeds[i].d * .3, .45);
       const l = lerpL(A, B, lp);
       let x = l.cx + (c - N / 2 + .5) * l.cell;
       let y = l.cy + (r - N / 2 + .5) * l.cell + dy;
-      const mid = Math.sin(lp * Math.PI);
+      const mid = rigid ? 0 : Math.sin(lp * Math.PI);
       x += Math.cos(seeds[i].a) * mid * l.cell * 1.6 * seeds[i].r;
       y += Math.sin(seeds[i].a) * mid * l.cell * 1.6 * seeds[i].r;
       let ia = 1;
@@ -2838,6 +2875,7 @@
     if (r.top < innerHeight && r.bottom > 0) {
       if (Math.abs(nv.getBoundingClientRect().width - NW) > 1) sizeNet();
       if (dirty) { input = toInput(); target = feed(input); dirty = false; }
+      window.__nnOut = target[3];
       for (let l = 1; l < 4; l++) for (let i = 0; i < shown[l].length; i++) shown[l][i] += (target[l][i] - shown[l][i]) * .25;
       drawNet();
     }
