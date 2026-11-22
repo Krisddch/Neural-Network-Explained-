@@ -171,6 +171,22 @@
     <h2>А ці дві — одна й та сама цифра</h2>
     <p>Хоча пікселі в них майже не збігаються. Саме цю «схожість форми» мережа й має навчитися бачити.</p>
   </div>
+  <div class="cap top" data-at="15.9" data-span="0.5">
+    <h2>Кожен піксель — це нейрон</h2>
+    <p>Перший шар мережі: по нейрону на кожен піксель, разом <b>784</b>.</p>
+  </div>
+  <div class="cap top" data-at="16.95" data-span="0.4">
+    <h2>Яскравість — це його число</h2>
+    <p>Що світліше коло, то більше значення в нейроні: від <b>0.0</b> до <b>1.0</b>.</p>
+  </div>
+  <div class="cap top" data-at="20.95" data-span="0.55">
+    <h2>Ось і вся мережа</h2>
+    <p>784 входи → два приховані шари по 16 нейронів → 10 виходів. Найяскравіший вихід — це відповідь.</p>
+  </div>
+  <div class="cap top" data-at="23.1" data-span="0.6" data-hold="1">
+    <h2>Кожен — з кожним</h2>
+    <p>Кожен нейрон передає своє число всім нейронам наступного шару.</p>
+  </div>
 </div>
 
 <nav class="rail" id="rail" aria-label="Розділи"></nav>
@@ -214,6 +230,10 @@
   // A handwritten 7 (for the "3 ≠ 7" comparison)
   const SEVEN = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.52,0.56,0.71,1,1,0.9,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.31,0.52,0.75,1,1,1,1,1,1,0.9,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.16,0.82,0.93,0.96,1,1,1,0.87,1,1,1,1,1,0.92,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.3,0.94,1,1,1,1,1,0.17,0.07,0.15,0.32,0.96,1,1,0.78,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.79,1,1,1,1,0.5,0.25,0,0,0,0.68,1,1,0.92,0.07,0,0,0,0,0,0],[0,0,0,0,0,0,0.32,0.99,1,1,0.93,0.29,0,0,0,0,0,0.78,1,1,0.61,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.78,1,1,0.83,0.32,0,0,0,0,0.07,0.43,1.0,1,0.82,0.31,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.38,0.85,0.78,0.11,0,0,0,0,0,0.58,1,1,0.88,0.13,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.38,1,1,1,0.46,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.06,1,1,1,0.47,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.63,1,1,1,0.17,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.77,1,1,0.48,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.45,1,1,0.7,0.06,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.71,1,1,0.52,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.19,1,1,0.88,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.19,0.7,1,0.92,0.16,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.73,1,1,0.49,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.22,0.79,1,0.66,0.16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.6,1,0.92,0.16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.34,1,0.37,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
 
+  // A handwritten 9 drawn as neurons (slides 11–15)
+  const NINE = Float32Array.from(([[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0.25,0.64,0.87,1,1,0.5,0.39,0.64,0.25,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0.4,0.95,1,1,0.79,0.87,1,1,1,0.72,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0.26,0.98,1,0.8,0.3,0,0,0.77,1,1,0.51,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0.43,1,1,0.77,0,0,0,0.41,1,1,0.92,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0.57,1,1,0.63,0,0,0,0,0.89,1,1,0.36,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.55,1,1,0.74,0,0,0,0,0.35,1.0,1,0.57,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.95,1,0.75,0,0,0,0.16,0.84,1,1,0.72,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0.09,1,1,0.13,0.08,0.53,0.82,0.98,1,1,1,0.34,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.95,1,1,1,1,1,0.93,0.93,1,0.95,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0.25,0.96,1,0.9,0.6,0.19,0.1,0.8,1,0.61,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.28,1,1,0.48,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.32,1,1,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.32,1,1,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.47,1,1,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0.2,1,1,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.9,1,0.25,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.43,1,0.8,0.18,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.77,1,0.72,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.63,1,0.19,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]).flat());
+  NINE[9 * 28 + 13] = .8;
+
   // ---------- Helpers ----------
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -228,9 +248,9 @@
   const stag = (p, d, spread = .35) => ease(clamp((p - d * spread) / (1 - spread)));
 
   // ---------- Timeline (in "scene units") ----------
-  const T_END = 14;
+  const T_END = 24;
   const UNIT = 1.15;              // viewport heights of scroll per unit
-  const STOPS = [0.25, 1.75, 2.95, 3.6, 5.0, 6.35, 8.45, 9.65, 10.35, 12.15, 13.55];
+  const STOPS = [0.25, 1.75, 2.95, 3.6, 5.0, 6.35, 8.45, 9.65, 10.35, 12.15, 13.55, 15.9, 16.95, 18.75, 20.95, 23.1];
 
   const track = document.getElementById('track');
   const resizeTrack = () => track.style.height = (T_END * UNIT + 1) * innerHeight + 'px';
@@ -270,6 +290,13 @@
     // comparison pair (scenes "3 ≠ 7" and "3 = 3")
     left:  () => ({ cx: W * (mobile ? .22 : .28), cy: H * (mobile ? .55 : .58), cell: pairSize() / N }),
     right: () => ({ cx: W * (mobile ? .78 : .72), cy: H * (mobile ? .55 : .58), cell: pairSize() / N }),
+    // neuron grid (slide 11) and centred neuron grid (slide 12)
+    neur:  () => mobile
+      ? ({ cx: W / 2 + 12, cy: H * .52, cell: (W - 76) / N })
+      : ({ cx: W * .38, cy: H * .6, cell: Math.min(W * .5, H * .62) / N }),
+    neur2: () => mobile
+      ? ({ cx: W / 2 + 12, cy: H * .52, cell: (W - 76) / N })
+      : ({ cx: W * .5, cy: H * .6, cell: Math.min(W * .62, H * .66) / N }),
   };
   const pairSize = () => mobile ? W * .34 : Math.min(W * .28, H * .5);
   const lerpL = (a, b, p) => ({ cx: lerp(a.cx, b.cx, p), cy: lerp(a.cy, b.cy, p), cell: lerp(a.cell, b.cell, p) });
@@ -277,7 +304,7 @@
   // Main digit keyframes: [time, layout]. Equal neighbours = hold, different = transition.
   const KF = [
     [0, 'hero'], [.8, 'hero'], [1.6, 'box'], [2.05, 'box'], [2.75, 'grid'], [3.85, 'grid'],
-    [4.5, 'side'], [7.1, 'side'], [7.9, 'grid'], [10.7, 'grid'], [11.5, 'left'], [T_END, 'left'],
+    [4.5, 'side'], [7.1, 'side'], [7.9, 'grid'], [10.7, 'grid'], [11.5, 'left'], [14.3, 'left'], [15.2, 'neur'], [16.4, 'neur'], [17.0, 'neur2'], [T_END, 'neur2'],
   ];
 
   function variantBox(i) {
@@ -408,6 +435,240 @@
     }
   }
 
+
+  // ---------- Neurons & network (slides 11–15) ----------
+  const CI = 9 * N + 13;                 // the neuron holding 0.8 that we zoom into
+  const GREEN = [146, 193, 104];
+  const greenFill = a => `rgb(${(GREEN[0] * a) | 0},${(GREEN[1] * a) | 0},${(GREEN[2] * a) | 0})`;
+  const BLUE_FILL = [74, 160, 192];
+
+  function drawDigitGlyphAlign(ch, x, y, fs, alpha, align) {
+    if (alpha <= 0) return;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#fff'; ctx.textAlign = align; ctx.textBaseline = 'middle';
+    ctx.font = digitFont(fs);
+    ctx.fillText(ch, x, y);
+    ctx.globalAlpha = 1;
+  }
+
+  // curly brace from (x1,y1) to (x2,y2), bulging to the left of the direction of travel
+  function drawBrace(x1, y1, x2, y2, h, p = 1) {
+    const len = Math.hypot(x2 - x1, y2 - y1), mid = len / 2, r = Math.min(h, len / 6);
+    const u = v => mid + (v - mid) * p;
+    ctx.save();
+    ctx.translate(x1, y1); ctx.rotate(Math.atan2(y2 - y1, x2 - x1));
+    ctx.beginPath();
+    ctx.moveTo(u(0), 0);
+    ctx.quadraticCurveTo(u(0), -h / 2, u(r), -h / 2);
+    ctx.lineTo(u(mid - r), -h / 2);
+    ctx.quadraticCurveTo(u(mid), -h / 2, u(mid), -h);
+    ctx.quadraticCurveTo(u(mid), -h / 2, u(mid + r), -h / 2);
+    ctx.lineTo(u(len - r), -h / 2);
+    ctx.quadraticCurveTo(u(len), -h / 2, u(len), 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const neuronTarget = () => mobile
+    ? { x: W * .5, y: H * .34, d: Math.min(110, W * .28) }
+    : { x: W * .28, y: H * .36, d: Math.min(140, H * .16) };
+
+  function netA() {
+    const Y0 = H * (mobile ? .34 : .2), Y1 = H * .95, s = (Y1 - Y0) / 17.15;
+    const w = mobile ? W * .6 : Math.min(W * .45, (Y1 - Y0) * .95);
+    const xIn = mobile ? W * .2 : W * .43;
+    const xs = [0, 1, 2, 3].map(k => xIn + w * k / 3);
+    const layers = [
+      Array.from({ length: 16 }, (_, i) => ({ x: xs[0], y: Y0 + (i < 8 ? i : i + 2.15) * s })),
+      Array.from({ length: 16 }, (_, i) => ({ x: xs[1], y: Y0 + (1.09 + i) * s })),
+      Array.from({ length: 16 }, (_, i) => ({ x: xs[2], y: Y0 + (1.09 + i) * s })),
+      Array.from({ length: 10 }, (_, i) => ({ x: xs[3], y: Y0 + (4.1 + i) * s })),
+    ];
+    return { layers, r: s * .36, s, Y0 };
+  }
+  function netB() {
+    const Y0 = H * (mobile ? .3 : .2), Y1 = H * .94;
+    const sp = (Y1 - Y0) / 7.6;                                   // vertical spacing
+    const spX = Math.min(sp * 2.37, (mobile ? W * .74 : W * .6) / 3); // columns are wider apart, like the slide
+    const yTop = (Y0 + Y1) / 2 - 3.5 * sp, x0 = W / 2 - 1.5 * spX;
+    const counts = [8, 6, 6, 4], offs = [0, 1, 1, 2];
+    const layers = counts.map((n, l) => Array.from({ length: n }, (_, i) => ({ x: x0 + l * spX, y: yTop + (offs[l] + i) * sp })));
+    return { layers, r: sp * .27, s: sp };
+  }
+  const ACT_A = [
+    [0, 0, 0, 0, .8, .75, .55, .45, .4, .25, .45, .5, .5, .5, .45, .35],
+    [.9, 0, .9, 0, 0, .9, .9, .9, .9, 0, .9, 0, 0, 0, 0, .9],
+    [0, .9, .85, .85, 0, .9, .9, 0, .2, 0, 0, .9, 0, 0, 0, .9],
+    [0, 0, 0, 0, 0, 0, 0, .92, 0, 0],
+  ];
+  const ACT_B = [[.95, .02, .6, .6, .6, .02, .4, .4], [0, 0, .03, .03, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0]];
+
+  function neuronState(t, pos) {
+    if (t < 17.4 || t >= 20.05) return null;
+    const T = neuronTarget();
+    const blue = `rgb(${BLUE_FILL})`;
+    if (t < 18.45) {
+      const P = pos[CI], b = seg(t, 17.85, 18.4);
+      const g = .8 * 255;
+      return {
+        x: P.x, y: P.y, r: P.cell * .41,
+        fill: `rgb(${lerp(g, BLUE_FILL[0], b) | 0},${lerp(g, BLUE_FILL[1], b) | 0},${lerp(g, BLUE_FILL[2], b) | 0})`,
+        ring: b, textA: seg(t, 18.1, 18.45),
+      };
+    }
+    const q = seg(t, 19.2, 20.05);
+    const NA = netA(), node = NA.layers[0][4];
+    const c = BLUE_FILL.map((v, k) => lerp(v, GREEN[k] * .8, q) | 0);
+    return {
+      x: lerp(T.x, node.x, q), y: lerp(T.y, node.y, q) + Math.sin(q * Math.PI) * -40,
+      r: lerp(T.d / 2, NA.r, q), fill: `rgb(${c})`, ring: 1, textA: 1 - seg(t, 19.2, 19.45),
+    };
+  }
+
+  function drawDefinition(a, t) {
+    const fs = mobile ? 30 : Math.min(66, W * .036);
+    const parts = [['Нейрон', '#6fb7d6'], ['→', '#f4f4f4'], ['штука, що містить число', '#f4f4f4']];
+    ctx.font = digitFont(fs); ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    const sp = fs * .4;
+    const widths = parts.map(p => ctx.measureText(p[0]).width);
+    const fade = 1 - seg(t, 19.05, 19.35);
+    const lines = mobile ? [[0, 1], [2]] : [[0, 1, 2]];
+    const cy = mobile ? H * .56 : H * .6;
+    lines.forEach((ln, li) => {
+      const total = ln.reduce((s, k) => s + widths[k], 0) + sp * (ln.length - 1);
+      let x = (mobile ? W / 2 : W * .56) - total / 2;
+      const y = cy + li * fs * 1.35;
+      for (const k of ln) {
+        const pa = seg(t, 18.2 + k * .14, 18.5 + k * .14) * fade;
+        ctx.globalAlpha = pa; ctx.fillStyle = parts[k][1];
+        ctx.fillText(parts[k][0], x + (1 - pa) * 24, y);
+        x += widths[k] + sp;
+      }
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawNetwork(t, now) {
+    if (t < 19.3) return;
+    const A = netA(), B = netB();
+    const mp = seg(t, 21.6, 22.6);
+    const actGate = [1, seg(t, 20.3, 20.6), seg(t, 20.5, 20.8), seg(t, 20.7, 21.0)];
+    const cur = [];                                   // per layer: [{x,y,r,act,alpha}]
+    for (let l = 0; l < 4; l++) {
+      const la = A.layers[l], lbB = B.layers[l], nA = la.length, nB = lbB.length;
+      const app = seg(t, 19.35 + l * .18, 19.8 + l * .18);
+      const nodeApp = i => backOut(clamp(app * 1.6 - (i / nA) * .6));
+      const list = [];
+      const used = new Set();
+      if (mp > 0) {
+        for (let j = 0; j < nB; j++) {
+          const src = Math.round(j * (nA - 1) / (nB - 1)); used.add(src);
+          const a0 = la[src], b0 = lbB[j];
+          list.push({
+            x: lerp(a0.x, b0.x, mp), y: lerp(a0.y, b0.y, mp), r: lerp(A.r, B.r, mp),
+            act: lerp(ACT_A[l][src] * actGate[l], ACT_B[l][j], mp), alpha: 1, key: j,
+          });
+        }
+        for (let i = 0; i < nA; i++) if (!used.has(i)) {
+          list.push({ x: la[i].x, y: la[i].y, r: A.r * (1 - mp), act: ACT_A[l][i] * actGate[l], alpha: 1 - mp, key: -1 });
+        }
+      } else {
+        for (let i = 0; i < nA; i++) {
+          const k = nodeApp(i);
+          if (k <= 0) continue;
+          if (l === 0 && i === 4 && t < 20.05) continue;     // the travelling neuron draws itself
+          list.push({ x: la[i].x, y: la[i].y, r: A.r * k, act: ACT_A[l][i] * actGate[l], alpha: clamp(k), key: i });
+        }
+      }
+      cur.push(list);
+    }
+
+    // edges
+    for (let l = 0; l < 3; l++) {
+      const ep = mp > 0 ? 1 : seg(t, 19.75 + l * .22, 20.3 + l * .22);
+      if (ep <= 0) continue;
+      const full = new Path2D(), faded = new Path2D();
+      for (const a of cur[l]) for (const b of cur[l + 1]) {
+        const path = (a.alpha < 1 || b.alpha < 1) && mp > 0 ? faded : full;
+        path.moveTo(a.x, a.y); path.lineTo(lerp(a.x, b.x, ep), lerp(a.y, b.y, ep));
+      }
+      ctx.lineWidth = lerp(.6, 1.6, mp);
+      ctx.strokeStyle = `rgba(215,215,215,${lerp(.42, .8, mp)})`; ctx.stroke(full);
+      if (mp > 0 && mp < 1) { ctx.strokeStyle = `rgba(215,215,215,${.42 * (1 - mp)})`; ctx.stroke(faded); }
+    }
+    // slide 15: first input's connections light up
+    const hl = seg(t, 22.6, 23.05);
+    if (hl > 0 && mp >= 1) {
+      const a = cur[0].find(n => n.key === 0);
+      for (const b of cur[1]) {
+        if (b.key < 0) continue;
+        const g = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+        g.addColorStop(0, `rgba(170,215,120,${hl})`); g.addColorStop(.6, `rgba(170,215,120,${hl * .35})`); g.addColorStop(1, 'rgba(170,215,120,0)');
+        ctx.strokeStyle = g; ctx.lineWidth = 2.6;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+      ctx.save(); ctx.shadowColor = 'rgba(170,215,120,.8)'; ctx.shadowBlur = 24 * hl;
+      ctx.beginPath(); ctx.arc(a.x, a.y, a.r * (1 + .08 * hl), 0, Math.PI * 2);
+      ctx.fillStyle = greenFill(1); ctx.fill(); ctx.restore();
+    }
+    // nodes
+    for (const layer of cur) for (const n of layer) {
+      if (n.r <= .3) continue;
+      ctx.globalAlpha = n.alpha;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = greenFill(n.act); ctx.fill();
+      ctx.lineWidth = Math.max(1.5, n.r * .15); ctx.strokeStyle = '#78bdd8'; ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    const outA = 1 - seg(t, 21.6, 21.9);
+    // input ellipsis
+    const dotsA = seg(t, 19.5, 19.8) * (1 - mp);
+    if (dotsA > 0) {
+      const a7 = A.layers[0][7], a8 = A.layers[0][8];
+      ctx.fillStyle = `rgba(255,255,255,${dotsA})`;
+      for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(a7.x, lerp(a7.y, a8.y, k / 4), Math.max(1.5, A.r * .14), 0, Math.PI * 2); ctx.fill(); }
+    }
+    // brace "784"
+    const bA = win(t, 19.6, 20.0, 21.6, 21.85);
+    if (bA > 0) {
+      const top = A.layers[0][0], bot = A.layers[0][15];
+      const bx = top.x - A.r - A.s * .5, depth = A.s * .5;
+      ctx.save(); ctx.globalAlpha = bA; ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, A.s * .07); ctx.lineCap = 'round';
+      drawBrace(bx, bot.y + A.r, bx, top.y - A.r, depth, seg(t, 19.6, 20.0));
+      ctx.restore();
+      drawDigitGlyphAlign('784', bx - depth - A.s * .3, (top.y + bot.y) / 2, Math.min(64, A.s * (mobile ? .7 : 1.05)), bA, 'right');
+    }
+    // output labels + highlighted answer 7
+    const labA = seg(t, 20.0, 20.4) * outA;
+    if (labA > 0) {
+      const fs = A.s * .78;
+      A.layers[3].forEach((n, k) => drawDigitGlyphAlign(String(k), n.x + A.r + A.s * .18, n.y + fs * .03, fs, labA, 'left'));
+      const h7 = win(t, 20.95, 21.25, 21.6, 21.85);
+      if (h7 > 0) {
+        const n = A.layers[3][7];
+        const x0 = n.x - A.r - A.s * .12, x1 = n.x + A.r + A.s * .18 + fs * .7;
+        const grow = 1.25 - .25 * h7;
+        const cx = (x0 + x1) / 2, w = (x1 - x0) * grow, h = A.s * 1.28 * grow;
+        drawHlBox(cx, n.y, w, h, h7);
+      }
+    }
+    // input image: a 7 in a blue frame
+    const boxA = win(t, 19.45, 19.95, 21.6, 21.9);
+    if (boxA > 0) {
+      const size = mobile ? H * .13 : Math.min(W * .19, H * .27);
+      const bl = mobile
+        ? { cx: W * .78, cy: H * .245, cell: size / N }
+        : { cx: W * .03 + size / 2, cy: A.Y0 + size / 2, cell: size / N };
+      drawFrame(bl, boxA, '111,183,214', bl.cell * .5);
+      const ap = raw(t, 19.45, 20.0);
+      drawDigit(SEVEN, bl, boxA, 0, (i, r, c) => {
+        const k = stag(ap, seeds[i].d, .6);
+        return k > 0 ? { dx: 0, dy: (1 - k) * -12, a: k } : null;
+      });
+    }
+  }
+
   // ---------- Intro ----------
   const t0 = performance.now();
   const INTRO_MS = 2200;
@@ -433,7 +694,8 @@
 
   function updateDOM(t) {
     for (const c of caps) {
-      const d = (t - c.at) / c.span;
+      let d = (t - c.at) / c.span;
+      if (c.el.dataset.hold && d > 0) d = 0;
       const o = clamp(1.25 - Math.abs(d) * 1.25);
       const y = -d * 70;
       c.el.style.opacity = easeOut(o).toFixed(3);
@@ -491,21 +753,24 @@
     else if (t >= 2.75 && t < 3.85) dy = drift(t, 2.5, 4.1) * .6;
     else if (t >= 4.5 && t < 7.1) dy = drift(t, 4.3, 7.3);
     else if (t >= 7.9 && t < 10.7) dy = drift(t, 7.7, 10.9) * .6;
-    else if (t >= 11.5) dy = drift(t, 11.3, 14.2);
+    else if (t >= 11.5 && t < 14.3) dy = drift(t, 11.3, 14.5);
     // keep drift continuous at segment boundaries by easing it in/out
     const holdEdge = (a, b) => Math.min(raw(t, a, a + .25), 1 - raw(t, b - .25, b));
     if (t >= 7.9 && t < 10.7) dy *= holdEdge(7.9, 10.7);
     if (t >= 2.75 && t < 3.85) dy *= holdEdge(2.75, 3.85);
     if (t >= 4.5 && t < 7.1) dy *= holdEdge(4.5, 7.1);
     if (t >= 1.6 && t < 2.05) dy *= holdEdge(1.6, 2.05);
-    if (t >= 11.5) dy *= raw(t, 11.5, 11.75);
+    if (t >= 11.5 && t < 14.3) dy *= Math.min(raw(t, 11.5, 11.75), 1 - raw(t, 14.05, 14.3));
 
     const numbersA = win(t, 2.35, 3.0, 3.85, 4.1) + win(t, 7.75, 8.25, 10.7, 10.95);
     const yellow   = win(t, 5.55, 6.35, 7.0, 7.5);
     const gapF     = lerp(.04, .3, yellow);
     const boxA     = win(t, 1.0, 1.5, 2.05, 2.4);
     const gridFrameA = win(t, 2.5, 2.9, 3.85, 4.15) + win(t, 7.5, 7.9, 10.7, 11.0);
-    const pairFrameA = seg(t, 11.15, 11.55);
+    const pairFrameA = win(t, 11.15, 11.55, 14.2, 14.5);
+    const morph9   = raw(t, 14.45, 15.3);    // → a 9, drawn as neurons
+    const roundA   = seg(t, 14.7, 15.2);
+    const ringA    = win(t, 14.95, 15.5, 17.4, 17.9);
     const morph0   = raw(t, 10.75, 11.6);   // main 3 → narrow handwritten 3 (variant 0)
     const pulse    = yellow > 0 && yellow < 1 ? Math.sin(yellow * Math.PI) : 0;
 
@@ -515,6 +780,7 @@
       const c = i % N;
       const m = morph0 > 0 ? stag(morph0, (c / N) * .5 + seeds[i].d * .5, .5) : 0;
       vals[i] = lerp(MAIN[i], VARIANTS[0][i], m);
+      if (morph9 > 0) vals[i] = lerp(vals[i], NINE[i], stag(morph9, (1 - ((i / N) | 0) / N) * .5 + seeds[i].d * .5, .5));
     }
 
     const pos = new Array(NN);
@@ -539,6 +805,20 @@
       pos[i] = { x, y, cell: l.cell, ia };
     }
 
+    // camera zoom into one neuron (slide 13)
+    const zp = seg(t, 17.4, 18.4);
+    if (zp > 0) {
+      const P0 = { ...pos[CI] }, T = neuronTarget();
+      const S = Math.pow((T.d / 2) / (P0.cell * .41), zp);
+      const ax = lerp(P0.x, T.x, zp), ay = lerp(P0.y, T.y, zp);
+      const fade = 1 - seg(zp, 0, .55);
+      for (let i = 0; i < NN; i++) {
+        const P = pos[i];
+        pos[i] = { x: ax + (P.x - P0.x) * S, y: ay + (P.y - P0.y) * S, cell: P.cell * S, ia: P.ia * (i === CI ? 1 : fade) };
+      }
+    }
+    const gridOn = t < 18.45;
+
     // frames
     const lb = lerpL(A, B, p ? ease(p) : 0);
     const lbd = { ...lb, cy: lb.cy + dy };
@@ -546,15 +826,36 @@
     drawFrame(lbd, gridFrameA, '111,183,214', lb.cell * .5);
     drawFrame(lbd, pairFrameA * .85, '200,200,200', 0);
 
+    // neuron rings (every pixel becomes an empty circle)
+    if (ringA > 0 && gridOn) {
+      ctx.lineWidth = Math.max(.6, pos[0].cell * .035);
+      for (let i = 0; i < NN; i++) {
+        const P = pos[i];
+        if (P.ia <= 0 || (i === CI && t >= 17.4)) continue;
+        const r = (i / N) | 0, c = i % N;
+        const w = clamp(ringA * 1.7 - (r + c) / (2 * N) * .7);
+        if (w <= 0) continue;
+        ctx.strokeStyle = `rgba(225,225,225,${.7 * w * P.ia})`;
+        ctx.beginPath(); ctx.arc(P.x, P.y, P.cell * .41 * (.6 + .4 * w), 0, Math.PI * 2); ctx.stroke();
+      }
+    }
     // pixels
-    for (let i = 0; i < NN; i++) {
+    const gapC = lerp(gapF, .18, roundA);
+    for (let i = 0; gridOn && i < NN; i++) {
       const v = vals[i];
       if (v <= 0.001) continue;
       const P = pos[i];
+      if (P.ia <= 0 || (i === CI && t >= 17.4)) continue;
       const r = (i / N) | 0, c = i % N;
-      const s = P.cell * (1 - gapF) * (1 + pulse * .25 * Math.sin((r + c) * .5 - yellow * 9));
+      const s = P.cell * (1 - gapC) * (1 + pulse * .25 * Math.sin((r + c) * .5 - yellow * 9));
       ctx.fillStyle = pixelColor(v, yellow, P.ia);
-      ctx.fillRect(P.x - s / 2, P.y - s / 2, s, s);
+      if (roundA > 0) {
+        ctx.beginPath();
+        if (roundA >= 1) ctx.arc(P.x, P.y, s / 2, 0, Math.PI * 2);
+        else if (ctx.roundRect) ctx.roundRect(P.x - s / 2, P.y - s / 2, s, s, s / 2 * roundA);
+        else ctx.rect(P.x - s / 2, P.y - s / 2, s, s);
+        ctx.fill();
+      } else ctx.fillRect(P.x - s / 2, P.y - s / 2, s, s);
     }
     // numeric labels
     if (numbersA > 0.001 && pos[0].cell >= 9) {
@@ -652,9 +953,10 @@
 
     // --- Scene 9/10: "3 ≠ 7", then the 7 becomes another 3: "3 = 3" ---
     const rightIn = raw(t, 11.05, 11.95);
-    if (rightIn > 0) {
+    if (rightIn > 0 && t < 15.05) {
+      const back = raw(t, 14.2, 14.95);   // right digit streams into the main one
       const R = L.right(), Rd = { ...R, cy: R.cy + dy * 1.4 };
-      drawFrame(Rd, seg(t, 11.1, 11.5) * .85, '200,200,200', 0);
+      drawFrame(Rd, win(t, 11.1, 11.5, 14.2, 14.5) * .85, '200,200,200', 0);
       const m = raw(t, 12.65, 13.45);                       // 7 → bold 3
       const V = new Float32Array(NN);
       for (let i = 0; i < NN; i++) {
@@ -665,10 +967,13 @@
         const lp = stag(rightIn, (1 - c / N) * .5 + seeds[i].d * .5, .5);
         if (lp <= 0) return null;
         const mm = m > 0 ? Math.sin(stag(m, (r / N) * .55 + seeds[i].d * .45, .55) * Math.PI) : 0;
+        const bk = back > 0 ? stag(back, (c / N) * .5 + seeds[i].d * .5, .5) : 0;
+        const gx = Rd.cx + (c - N / 2 + .5) * Rd.cell, gy = Rd.cy + (r - N / 2 + .5) * Rd.cell;
+        const bm = Math.sin(bk * Math.PI);
         return {
-          dx: (1 - lp) * (W * .35 + seeds[i].r * 120) + Math.cos(seeds[i].a) * mm * Rd.cell * 1.4,
-          dy: (1 - lp) * Math.sin(seeds[i].a) * 160 + Math.sin(seeds[i].a) * mm * Rd.cell * 1.4,
-          a: lp,
+          dx: (1 - lp) * (W * .35 + seeds[i].r * 120) + Math.cos(seeds[i].a) * mm * Rd.cell * 1.4 + (pos[i].x - gx) * bk + Math.cos(seeds[i].a) * bm * 50,
+          dy: (1 - lp) * Math.sin(seeds[i].a) * 160 + Math.sin(seeds[i].a) * mm * Rd.cell * 1.4 + (pos[i].y - gy) * bk + Math.sin(seeds[i].a) * bm * 50,
+          a: lp * (1 - bk),
         };
       });
 
@@ -677,7 +982,7 @@
       const sx = (Lb.cx + R.cx) / 2, sy = R.cy + dy * 1.2;
       const unit = pairSize();
       const gapPx = (R.cx - Lb.cx) - unit;
-      const eqA = seg(t, 11.6, 11.95);
+      const eqA = win(t, 11.6, 11.95, 14.15, 14.4);
       const eqScale = lerp(1, 1.12, seg(t, 12.9, 13.4));
       const ew = Math.min(unit * .26, gapPx * .6) * eqScale, egap = Math.min(unit * .055, gapPx * .12) * eqScale;
       if (eqA > 0) {
@@ -711,6 +1016,49 @@
         }
       }
     }
+
+    // --- Scene 11/12: braces "28", equation "28 × 28 = 784" ---
+    const braceA = win(t, 15.3, 15.75, 17.35, 17.65);
+    if (braceA > 0) {
+      const gs = lbd.cell * N, gx0 = lbd.cx - gs / 2, gy0 = lbd.cy - gs / 2;
+      const off = Math.max(10, lbd.cell * .55), depth = Math.max(9, lbd.cell * .55);
+      const bp = seg(t, 15.3, 15.75);
+      ctx.save();
+      ctx.globalAlpha = braceA;
+      ctx.strokeStyle = '#f4f4f4'; ctx.lineWidth = Math.max(2, lbd.cell * .1); ctx.lineCap = 'round';
+      drawBrace(gx0, gy0 - off, gx0 + gs, gy0 - off, depth, bp);           // top
+      drawBrace(gx0 - off, gy0 + gs, gx0 - off, gy0, depth, bp);           // left
+      const fs = Math.max(18, Math.min(52, gs * .075));
+      ctx.restore();
+      drawDigitGlyph('28', lbd.cx, gy0 - off - depth - fs * .55, fs, braceA * seg(t, 15.5, 15.8));
+      ctx.textAlign = 'right';
+      drawDigitGlyphAlign('28', gx0 - off - depth - fs * .2, lbd.cy, fs, braceA * seg(t, 15.5, 15.8), 'right');
+    }
+    const eqnA = win(t, 15.65, 16.05, 16.4, 16.7);
+    if (eqnA > 0) {
+      const gs = lbd.cell * N;
+      const fs = mobile ? 26 : Math.max(26, Math.min(68, W * .04));
+      const ex = mobile ? W / 2 : lerp(lbd.cx + gs / 2, W, .5) + 10;
+      const ey = mobile ? lbd.cy + gs / 2 + 42 : lbd.cy - gs / 2 + fs * .5;
+      drawDigitGlyph('28 × 28 = 784', ex + (1 - eqnA) * 30, ey, fs, eqnA);
+    }
+
+    // --- Scene 13: one neuron "holds a number" ---
+    const nz = neuronState(t, pos, gapF);
+    if (nz) {
+      ctx.beginPath(); ctx.arc(nz.x, nz.y, nz.r, 0, Math.PI * 2);
+      ctx.fillStyle = nz.fill; ctx.fill();
+      if (nz.ring > 0) {
+        ctx.lineWidth = Math.max(1.5, nz.r * .07);
+        ctx.strokeStyle = `rgba(150,205,225,${nz.ring})`; ctx.stroke();
+      }
+      if (nz.textA > 0) drawDigitGlyph('0.8', nz.x, nz.y + nz.r * .03, nz.r * .62, nz.textA);
+    }
+    const defA = win(t, 18.2, 18.7, 19.05, 19.35);
+    if (defA > 0) drawDefinition(defA, t);
+
+    // --- Scene 14/15: the network ---
+    drawNetwork(t, now);
 
     updateDOM(t);
   }
