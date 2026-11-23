@@ -124,10 +124,12 @@
   #play {
     position: relative; z-index: 5;
     background: var(--bg);
-    min-height: 100vh;
-    display: flex; align-items: center;
-    padding: 9vh 16px 6vh;
+    height: 240vh;                       /* tall track: the pad stays pinned while you scroll past it */
     box-shadow: 0 -60px 80px 20px #000, 0 60px 80px 20px #000;
+  }
+  .play-pin {
+    position: sticky; top: 0; height: 100vh; height: 100svh; box-sizing: border-box;
+    display: flex; align-items: center; padding: 7vh 16px 3vh; overflow: hidden;
   }
   .play-inner { width: min(1280px, 100%); margin: 0 auto; }
   .play-head { text-align: center; margin-bottom: 4vh; }
@@ -159,9 +161,16 @@
   .credit { margin-top: 3vh; text-align: center; font-size: 12px; color: #6d6d6d; }
   .credit a { color: #8fc6dd; }
   @media (max-width: 760px) {
-    .play-grid { grid-template-columns: 1fr; }
-    .pad-col { width: min(320px, 100%); margin: 0 auto; }
-    #netview { height: 62vh; }
+    #play { height: 260vh; }
+    .play-pin { padding: 5svh 16px 2svh; }
+    .play-head { margin-bottom: 1.5svh; }
+    .play-head .kicker { margin-bottom: 4px; }
+    .play-head h2 { font-size: 24px; }
+    .play-grid { grid-template-columns: 1fr; gap: 10px; }
+    .pad-col { width: min(300px, 33svh, 100%); margin: 0 auto; }
+    .pad-tools { margin-top: 8px; }
+    #netview { height: 31svh; }
+    .credit { margin-top: 1svh; font-size: 11px; }
   }
   .fs {
     position: fixed; right: 16px; bottom: 16px; z-index: 7; width: 38px; height: 38px;
@@ -296,6 +305,7 @@
 
 <div id="track"></div>
 <section id="play" aria-label="Спробуй сам">
+ <div class="play-pin">
   <div class="play-inner">
     <div class="play-head">
       <span class="kicker">Спробуй сам</span>
@@ -318,6 +328,7 @@
     </div>
     <p class="credit">Мережа 784 → 16 → 16 → 10 з вагами з <a href="https://github.com/3b1b/videos/tree/master/_2017/nn" target="_blank" rel="noopener">3b1b/videos</a>, дотренованими на рукописних цифрах</p>
   </div>
+ </div>
 </section>
 <div id="track2"></div>
 
